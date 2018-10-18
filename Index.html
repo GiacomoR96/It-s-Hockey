@@ -1,0 +1,122 @@
+<html>
+  <head>
+
+    <link href="css/style.css"  rel="stylesheet" type="text/css" />
+    <link href="/www/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+    
+    <title>Index</title>
+
+    <script>
+
+        function saveData(){
+            
+            var value = document.getElementsByName("LoginUsr")[0].value;
+            console.log("NOME LoginUsr:",value);
+            /* console.log("NOME LoginUsr:",value);
+            console.log("NOME LoginUsr:",value);
+            console.log("NOME LoginUsr:",value);
+            console.log("NOME LoginUsr:",value);
+            console.log("NOME LoginUsr:",value);
+            alert("NOME LoginUsr: "+value); */
+            
+            if(typeof(value) !== "undefined"){
+            //    alert("NOME LoginUsr: "+value);
+
+                // Check browser support
+                if (typeof(Storage) !== "undefined") {
+                    // Store
+                    sessionStorage.setItem("nickname", value);
+                    
+                    // Retrieve
+                    var x = sessionStorage.getItem("nickname");
+                //    alert("VALORE SALVATO: "+x);
+                } else {
+                    alert("Il tuo browser non supporta alcuni parametri di gioco.\nAccedi da un'altro dispositivo!")
+                //    document.getElementsByName("LoginUsr").innerHTML = "Sorry, your browser does not support Web Storage...";
+                }
+            }
+        }
+    </script>
+
+  </head>
+
+  <body>
+    A1A <input name="AAA" type="text"><input onclick="saveData()" type="submit" value="VITA">
+    <center> 
+        <p class = "titolo" > It's Hockey! </p>  
+    </center>
+    <div id = "wrapper">
+        <div class = "section">
+            <table class = "table">
+                    <tr>
+                        <td>
+                            <p class = "reg"> REGISTRAZIONE </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan = "2">
+                            <h2> Se non hai ancora un account, registrati ora! </h2>
+                        </td>
+                    </tr>
+                    <tr> 
+                        <td>
+                            <form id = "Registrazione" method = "POST">
+                                <input type="submit" value="Registrati" name="Registration" />
+                            </form>
+                        </td>
+                    </tr>
+            </table>
+        </div>
+
+        <div class = "section line"></div>
+
+        <div class = "section">
+            <table class = "table">
+                    <tr>
+                        <td>
+                            <p class = "reg"> LOGIN </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan = "2">
+                            <h2> Inserisci le tue credenziali per accedere al gioco! </h2>
+                        </td>
+                    </tr>
+                    <tr> 
+                        <td>
+                            <form id="Login" method="POST">
+                                <table id = "credenziali">
+
+                                    <tr>
+                                        <td colspan="2">
+                                            Nickname: 
+                                        </td>
+                                        <td>
+                                            <input id="usr" type="text" name="LoginUsr" />
+                                        </td>
+                                        <td rowspan="2">
+                                            <input class = "bottone" type="submit" value="Conferma" onclick="saveData()" />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="2">
+                                            Password: 
+                                        </td>
+                                        <td>
+                                            <input type="password" name="LoginPsw" />
+                                        </td>
+                                    </tr>
+
+                                </table>
+                            </form>
+                        </td>
+                    </tr>
+                    
+            </table>   
+        </div>
+
+    </div>
+
+  </body>
+
+</html>

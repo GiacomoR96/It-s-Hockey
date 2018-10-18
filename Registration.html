@@ -1,0 +1,75 @@
+<html>
+    <head>
+        
+        <link href="css/style.css"  rel="stylesheet" type="text/css" />
+
+        <title>FormRegistrazione</title>
+    
+        <script>
+
+            funcReg = () =>{            
+                var form = document.getElementById("registration");//.submit();
+                var usr = form.username.value;
+                var psw = form.password.value;
+                
+                if(usr!="" && psw!=""){
+                    socket.emit("registration", {usr:usr,psw:psw});
+                }
+                else{
+                    alert("VALORI NON INSERITI!");
+                }
+                
+            }
+
+        </script>
+
+
+    </head>
+
+  <body>
+
+    <div class = "posCredenziali">
+
+        <table>
+            <tr>
+                <td>
+                    <h2> Inserisci le credenziali per registrarti </h2> 
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <form id="Registration" method="POST">
+                                <table id = "credenziali">
+
+                                    <tr>
+                                        <td colspan = "2">
+                                            Username: 
+                                        </td>
+                                        <td>
+                                            <input type = "text" name = "RegUsername" />
+                                        </td>
+                                        <td rowspan = "2">
+                                            <input class = "bottone" type="submit" value="Registrati" />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan = "2">
+                                            Password: 
+                                        </td>
+                                        <td>
+                                            <input type = "password" name = "RegPsw" />
+                                        </td>
+                                    </tr>
+
+                                </table>
+                    </form>
+                </td>
+            </tr>
+            
+        </table>
+
+    </div>
+
+  </body>
+
+</html>

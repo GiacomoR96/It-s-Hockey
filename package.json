@@ -1,0 +1,28 @@
+{
+  "name": "app",
+  "version": "1.0.0",
+  "description": "Questa app e bella",
+  "main": "main.js",
+  "dependencies": {
+    "express": "^4.16.3",
+    "mysql": "^2.16.0",
+    "path": "^0.12.7",
+    "request": "^2.87.0",
+    "require": "^2.4.20",
+    "socket.io": "^2.0.4",
+    "stream": "0.0.2",
+    "system-sleep": "^1.3.6",
+    "url": "^0.11.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "start": "node ."
+  },
+  "keywords": [
+    "belo",
+    "bello",
+    "bello"
+  ],
+  "author": "Io",
+  "license": "MIT"
+}
