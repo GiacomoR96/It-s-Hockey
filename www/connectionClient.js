@@ -1,3 +1,5 @@
+// Client copia per effettuare la login
+
 var app = {};
 app.rival = {};
 app.start = false;
@@ -17,18 +19,14 @@ app.bool = false;
 app.boolBall = false;
 app.posBallX;
 app.posBallY;
-//app.nickname = prompt("Inserisci il nickname");
+app.nickname = prompt("Inserisci il nickname");
 app.nickname = "1";
-var socket = io('http://127.0.0.1:8081'); 
+var socket = io('http://localhost:8080'); 
 
 if(!app.nickname) window.location.reload();
 console.log("Nome utente: ",app.nickname);
 
 socket.emit("login", {nickname:app.nickname});
-
-socket.emit("CIAO", ()=>{
-    console.log("FATTO!");
-})
 
 socket.on("users_game", (data) =>{
     for(var i=0;i<data.users.length;i++){

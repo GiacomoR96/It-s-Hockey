@@ -1,73 +1,58 @@
-/* client.on('login', (data) =>{
-        
-    var oggettoDaSalvare = {
-        socket : client,
-        nickname: data.nickname
-    }
+console.log("--------------SONO IL FIGLIOOOO!!");
+var express = require('express');
+var app = express();
+var EventEmitter = require('events').EventEmitter;          // Forse
+var logger = new EventEmitter();
+var port = 8081;
+var logs = require("./log");
+var http = require('http');
+                var serverWebSocket = http.createServer(app);
+//var x = require ('child_process'); 
 
-    // SITUAZIONE DEL LOGIN TRAMITE DISCONNESSIONE
+                var listener = require('socket.io')(serverWebSocket);
+                //if(socketServerWeb) console.log("SONO IN ASCOLTO");
 
-    for(var i=0;i<clients_nickname.length;i++){
-        if(data.nickname == clients_nickname[i]){
-            clients[data.nickname] = oggettoDaSalvare;
-            var obj = clients[clients_nickname[i]];
+/*                 socketServerWeb.listen(port, () =>{
+                    console.log("socketServer avviato sulla porta ",listener.address().port,"...");
+                }); */
 
-            obj.socket.emit("myPosition",dataClients[clients_nickname[i]]);
+listener.listen(8081, function(){
+    console.log('Listening on port ' + listener.address().port); //Listening on port 8888
+});
 
-            for(var i=0;i<clients_nickname.length;i++){
-                if(data.nickname != clients_nickname[i]){
-                    obj.socket.emit("rivalPosition",dataClients[clients_nickname[i]]);
-                    i=clients_nickname.length;
-                }
-            }
+process.on('message', (data) => {
+    console.log('Processo Figlio ha ricevuto: ', data);
+//    process.disconnect();
+});
 
-            //(PASSAGGIO POSIZIONE PALLINA)
+//process.send({ it: 'Ciao', en: 'Hello' });
 
-            //(PASSAGGIO PUNTEGGIO PARTITA)
-            obj.socket.emit("refreshScoreGame",{nickname: clients_nickname[0], score:punteggioPartita[clients_nickname[0]]});
-            obj.socket.emit("refreshScoreGame",{nickname: clients_nickname[1], score:punteggioPartita[clients_nickname[1]]});
-                           
-            obj.socket.emit("start_game",{start:true});
-            obj.socket.emit("users_game", {users: clients_nickname});
+logger.on("info", (message) =>{
+    logs.info(message);
+});
+
+logger.on("error", (message) =>{
+    logs.error(message);
+});
+
+//socketServerWeb.on('connection', (client) =>{
+    listener.on('connection', (client) =>{
+    console.log("-----------------socketClient: Qualcuno ha mandato un messaggio alla socket!");
+    
+//    console.log("contenuto:\n",client);
+
+//    console.log("CONTENUTO=>",client);
+
+    client.on('login', (data) =>{
             
-            // FORSE RETURN
-            // return 0;
+        var oggettoDaSalvare = {
+            socket : client,
+            nickname: data.nickname
         }
-    }    
+        console.log("SONO DENTRO LA LOGIN!", oggettoDaSalvare.nickname);
+    //  process.send({ obj:oggettoDaSalvare.nickname });  questo caso funziona perchè inviamo una stringa
+        process.send( JSON.stringify({socket: oggettoDaSalvare.socket, nickname: oggettoDaSalvare.nickname}) );
+    });
 
-    clients[data.nickname] = oggettoDaSalvare;    // viene salvato il nuovo client nell'array che contiene i riferimenti a tutti i client connessi
-    clients_nickname.push(data.nickname);         // viene salvato il nickname nell'array contenente tutti i nickname dei client connessi
-    console.log("Si è collegato il giocatore: ", data.nickname);
-    console.log("Giocatori connessi: ", clients_nickname);
+});
 
-    if(clients_nickname.length>1){
-        for(var i=0;i<clients_nickname.length;i++){
-            if(clients[clients_nickname[i]]){
-                
-                if(!dataClients[clients_nickname[i]]){
-                    
-                    var x = initialPositionClients[0]?initialPositionClients[0]:null;
-                    var y = initialPositionClients[1]?initialPositionClients[1]:null;
-                    initialPositionClients.splice(0, 2);
-
-                    var dataCurrentClient = {
-                        posX : x,
-                        posY : y,
-                        nickname: clients_nickname[i]
-                    }
-
-                    dataClients[clients_nickname[i]] = dataCurrentClient;
-                }
-                
-                punteggioPartita[clients_nickname[i]] = 0;
-
-                var obj = clients[clients_nickname[i]];
-                obj.socket.emit("positionBall", {x: initialPositionBall[0], y:initialPositionBall[1]});
-                obj.socket.emit("users_game", {users: clients_nickname});
-                obj.socket.emit("setIDPorta",{idPorta:i});
-                obj.socket.emit("start_game",{start:true});
-            }
-
-        }
-    }
-}); */

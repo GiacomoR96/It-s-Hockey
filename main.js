@@ -7,9 +7,9 @@ var http = require('http');
 var fs = require('fs');
 var path = require('path');
 
-// inizializzazione socket per l'instaurazione della connessione
-const {fork} = require ('child_process');
-var child_process = fork('createSocket.js');   
+// inizializzazione socket per l'instaurazione della connessione attraverso le socket
+const {fork} = require ('child_process');  
+var child_process = fork('createSocket.js');
 
 // Inizializzazione del padre
 
@@ -18,15 +18,32 @@ console.log("ServerPadre avviato sulla porta ",port,"...");
 var usersConnected = [];
 var usersPlayGame = [];
 var usersSocket = [];
+var LIMIT = 8;
 
 /* STANZA LIBERA = false, OCCUPATA =  true */
 var room = [false, false, false, false];
 
+/* Inizializzazione socket (nel message abbiamo tutto il contenuto ricevuto dal figlio) */
+child_process.on('message', (data) =>{
+    //data = data.;
+    console.log("DATI ricevuti dal figlio...",data);
+/*     if(usersSocket.length<LIMIT){
+        usersSocket[usersSocket.length] = data;
+    }
+    console.log("Richiesta partita del giocatore: ",usersSocket[usersSocket.length-1].nickname);
+ */
+});
+
+
+
+child_process.send({
+    message: `Inviato da processo padre con PID: ${process.pid}\n`
+});
 
 var serverHTTP = http.createServer((req,res) =>{
 
 
-    console.log("Messaggio ricevuto", req.url);
+//    console.log("Messaggio ricevuto", req.url);
 
     if (req.method == "GET") {
 
@@ -66,6 +83,16 @@ var serverHTTP = http.createServer((req,res) =>{
         else if(req.url.indexOf('game.js') != -1){ //req.url has the pathname, check if it conatins '.js'
 
             fs.readFile(__dirname + '/www/js/game.js', function (err, data) {
+            if (err) console.log(err);
+            res.writeHead(200, {'Content-Type': 'text/javascript'});
+            res.write(data);
+            res.end();
+            });
+    
+        }
+        else if(req.url.indexOf('test.js') != -1){ //req.url has the pathname, check if it conatins '.js'
+
+            fs.readFile(__dirname + '/www/js/test.js', function (err, data) {
             if (err) console.log(err);
             res.writeHead(200, {'Content-Type': 'text/javascript'});
             res.write(data);
@@ -221,6 +248,7 @@ var serverHTTP = http.createServer((req,res) =>{
                     usersPlayGame[usersPlayGame.length] = contenitore[1];
                     console.log("GIOCATORE CHE VUOLE GIOCARE->",usersPlayGame[usersPlayGame.length-1]);
                     
+
                     if(room[0]==false || room[1]==false || room[2]==false || room[3]==false){
 
                         if((usersPlayGame.length%2)==0){
@@ -233,16 +261,7 @@ var serverHTTP = http.createServer((req,res) =>{
                             }
                         }
                         res.writeHead(200, { "Content-Type": "text/html" });
-                        fs.createReadStream("./www/StartGame.html", "UTF-8").pipe(res);      
-                        /*
-                        child_process.send({
-                            message
-                        });
-
-                        usersSocket[usersSocket.length] 
-                        */
-                       
-                    
+                        fs.createReadStream("./www/StartGame.html", "UTF-8").pipe(res);
                     
                     }
                     else{
