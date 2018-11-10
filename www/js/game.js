@@ -18,24 +18,25 @@ app.boolBall = false;
 app.posBallX;
 app.posBallY;
 //app.nickname = prompt("Inserisci il nickname");
-app.nickname = "1";
+app.nickname = "MARCO";
 var socket = io('http://127.0.0.1:8081'); 
 
 if(!app.nickname) window.location.reload();
 console.log("Nome utente: ",app.nickname);
 
 socket.emit("login", {nickname:app.nickname});
-
-socket.emit("CIAO", ()=>{
-    console.log("FATTO!");
-})
+socket.emit("myPosition",{text:"ciao"});
+socket.emit("rivalPosition",{text:"ciao"});
+socket.emit("moveMyPosition",{text:"ciao"});
+socket.emit("goalSuffered",{text:"ciao"});
 
 socket.on("users_game", (data) =>{
-    for(var i=0;i<data.users.length;i++){
-        if(app.nickname!=data.users[i]){
-            app.rival.nickname=data.users[i];
-        }
-    }
+    app.rival.nickname=data.nick_rival;
+    console.log("RIVALE->",app.rival.nickname);
+});
+
+socket.on("gameRefused", () =>{
+    alert("Tutte le stanze sono attualmente occupate!")
 });
 
 socket.on("myPosition", (data) =>{
