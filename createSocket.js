@@ -77,7 +77,7 @@ listener.on('connection', (client) =>{
 
 //    console.log("CONTENUTO=>",client);
 
-    client.on('login', (data) =>{
+    client.on("login", (data) =>{
             
         var oggettoDaSalvare = {
             socket : client,
@@ -147,13 +147,36 @@ listener.on('connection', (client) =>{
 
         process.send({event:"goalSuffered", data:data,nick:nick});
     });
+
+    client.on("puckPosition", (data) =>{
+        var nick;
+        for(var i=0;i<usersSocket.length;i++){
+            if(client == usersSocket[i].socket){
+                nick = usersSocket[i].nickname;
+            }
+        }
+
+        process.send({event:"puckPosition", data:data,nick:nick});
+    });
 });
 
 process.on('message', (data) => {
+    /* console.log("-----------");
+    console.log("-----------");
+    console.log(data);
+    for(var i=0;i<usersSocket.length;i++){
+     //   console.log(usersSocket[i]);
+        console.log(usersSocket[i].nickname);
+    } */
 
     var socketClient;
     for(var i=0;i<usersSocket.length;i++){
-        if(data.nick==usersSocket[i].nickname)  socketClient=usersSocket.socket;
+    //    console.log("SONO DENTRO IL CICLO");
+        if(data.nick===usersSocket[i].nickname){
+        //    console.log("SONO DENTRO IF");
+            socketClient=usersSocket[i].socket;
+        //    console.log("Contenuto socketClient: ", socketClient);
+        }
     }
 
     switch(data.event){
@@ -162,7 +185,9 @@ process.on('message', (data) => {
             break;
         }
         case "positionBall":{
-            socketClient.emit(data.event,data);
+            console.log("SOCKET RISPOSTA_>",data);
+            if(socketClient) console.log("SOCKET RISPOSTA - VERO");
+            socketClient.emit(data.event,data.x,data.y);
             break;
         }
         case "users_game":{
@@ -179,6 +204,22 @@ process.on('message', (data) => {
         }
         case "rivalPosition":{
             socketClient.emit(data.event,data.posX,data.posY);
+            break;
+        }
+        case "puckPosition":{
+            socketClient.emit(data.event,data.puck);
+            break;
+        }
+        case "moveRivalPosition":{
+            socketClient.emit(data.event,data.posX,data.posY);
+            break;
+        }
+        case "finishGame":{
+            socketClient.emit(data.event);
+            break;
+        }
+        case "refreshScoreGame":{
+            socketClient.emit(data.event,data.nickname,data.score);
             break;
         }
     }

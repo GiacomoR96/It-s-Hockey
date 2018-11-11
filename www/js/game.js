@@ -18,18 +18,37 @@ app.boolBall = false;
 app.posBallX;
 app.posBallY;
 //app.nickname = prompt("Inserisci il nickname");
-app.nickname = "MARCO";
-var socket = io('http://127.0.0.1:8081'); 
+app.nickname;
+var socket = io('http://127.0.0.1:8081');
+
+      
+var elementsCookie = document.cookie.split('; ');
+//    console.log("VAL_COOKIE->",elementsCookie);
+
+for(var i=0;i<elementsCookie.length;i++){
+//    console.log("CONFRONTO->",elementsCookie[i],"--- substr->",elementsCookie[i].substr(0,4));
+    if(elementsCookie[i].substr(0,4)=="nick"){
+        console.log("CI PASSO!1");
+        var tmp = elementsCookie[i].split('=');
+        var tmp = tmp[1].split(';');
+        app.nickname = tmp[0];
+    }
+    
+}
+//    console.log("JS - SONO NICK=",app.nickname);
+
+
 
 if(!app.nickname) window.location.reload();
 console.log("Nome utente: ",app.nickname);
 
 socket.emit("login", {nickname:app.nickname});
+/*
 socket.emit("myPosition",{text:"ciao"});
 socket.emit("rivalPosition",{text:"ciao"});
 socket.emit("moveMyPosition",{text:"ciao"});
 socket.emit("goalSuffered",{text:"ciao"});
-
+*/
 socket.on("users_game", (data) =>{
     app.rival.nickname=data.nick_rival;
     console.log("RIVALE->",app.rival.nickname);
@@ -57,7 +76,7 @@ socket.on("moveRivalPosition", (data) =>{
 });
 
 socket.on("puckPosition", (data) =>{
-    puck = data.puck;                 //       SCRIVI....MANGIA.....BEVI!  
+    puck = data.puck;  
     console.log("DATI_PUCK  puck:",puck);
 });
 
@@ -232,7 +251,7 @@ function create(){
             app.posX = dragX;
             app.posY = dragY;
 
-            socket.emit("moveMyPosition", {nickname:app.nickname, x:app.posX, y:app.posY,nickname_rival:app.rival.nickname});
+            socket.emit("moveMyPosition", {nickname:app.nickname, x:app.posX, y:app.posY});
         }  
     });
     

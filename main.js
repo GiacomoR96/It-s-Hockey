@@ -16,6 +16,11 @@ var child_process = fork('createSocket.js');
 console.log("ServerPadre avviato sulla porta ",port,"...");
 
 var serverGame = [];
+
+for(var i=0;i<4;i++){
+    serverGame[i] = fork('serverGame.js');      // serverGame[serverGame.length]
+}
+
 var usersConnected = [];
 var usersPlayGame = [];
 var countUsers = 0;
@@ -37,9 +42,9 @@ child_process.on('message', (data) =>{
     var indiceServer;
 
     for(var i = 0; i < usersPlayGame.length; i++) {
-        if(data.nickname == usersPlayGame[i]) {         
+        if(data.nick == usersPlayGame[i]) {         
             if(i % 2 == 1 || i == 0) {
-                indiceServer = i/2;
+                indiceServer = parseInt(i/2);
             }
             else{
                 indiceServer = (i/2)-1;
@@ -47,17 +52,18 @@ child_process.on('message', (data) =>{
             i = usersPlayGame.length;
         }
     }
-
+    console.log("PADRE_INDICE:",indiceServer);
     switch(data.event){
         case "login":{
-            console.log("DATI ricevuti dal figlio...",data);
+            console.log("PADRE - DATI ricevuti dalla socket:",data);
             usersPlayGame[usersPlayGame.length] = data.nick;
             countUsers++;
             if(countUsers%2 == 0){
                 console.log("VOGLIO AVVIARE IL GIOCO!");
                 //Avviamo uno dei serverGame per iniziare la partita
-                serverGame[serverGame.length] = fork('serverGame.js');
+//                serverGame[serverGame.length] = fork('serverGame.js');
 
+                serverGame[indiceServer].send({event:"id",indice:indiceServer});
                 serverGame[serverGame.length-1].send({
                     event:"login",
                     nick1:usersPlayGame[(usersPlayGame.length)-2],
@@ -68,20 +74,32 @@ child_process.on('message', (data) =>{
         }
         case "myPosition":{
             console.log("EVENTO MY_POSITION DA:",data.nick);
+            serverGame[indiceServer].send({event:"id",indice:indiceServer});
             serverGame[indiceServer].send(data);
             break;
         }
         case "rivalPosition":{
             console.log("EVENTO rivalPosition DA:",data.nick);
+            serverGame[indiceServer].send({event:"id",indice:indiceServer});
             serverGame[indiceServer].send(data);
             break;
         }
         case "moveMyPosition":{
             console.log("EVENTO MOVE_MY_POSITION DA:",data.nick);
+            serverGame[indiceServer].send({event:"id",indice:indiceServer});
+            serverGame[indiceServer].send(data);
             break;
         }
         case "goalSuffered":{
             console.log("EVENTO goalSuffered DA:",data.nick);
+            serverGame[indiceServer].send({event:"id",indice:indiceServer});
+            serverGame[indiceServer].send(data);
+            break;
+        }
+        case "puckPosition":{
+            console.log("EVENTO puckPosition DA:",data.nick);
+            serverGame[indiceServer].send({event:"id",indice:indiceServer});
+            serverGame[indiceServer].send(data);
             break;
         }
     }
@@ -94,7 +112,7 @@ child_process.on('message', (data) =>{
 
 });
 
-serverGame.on('message', (data) =>{
+serverGame[0].on('message', (data) =>{
     
     switch(data.event){
         case "myPosition":{
@@ -105,12 +123,8 @@ serverGame.on('message', (data) =>{
             child_process.send(data);
             break;
         }
-        case "moveMyPosition":{
-            
-            break;
-        }
-        case "goalSuffered":{
-            
+        case "moveRivalPosition":{
+            child_process.send(data);
             break;
         }
         case "positionBall":{
@@ -129,15 +143,164 @@ serverGame.on('message', (data) =>{
             child_process.send(data);
             break;
         }
+        case "finishGame":{
+            child_process.send(data);
+            break;
+        }
+        case "refreshScoreGame":{
+            child_process.send(data);
+            break;
+        }
+        case "puckPosition":{
+            child_process.send(data);
+            break;
+        }
     }
-
-
-
-
-
 
 });
 
+
+serverGame[1].on('message', (data) =>{
+    
+    switch(data.event){
+        case "myPosition":{
+            child_process.send(data);
+            break;
+        }
+        case "rivalPosition":{
+            child_process.send(data);
+            break;
+        }
+        case "moveRivalPosition":{
+            child_process.send(data);
+            break;
+        }
+        case "positionBall":{
+            child_process.send(data);
+            break;
+        }
+        case "users_game":{
+            child_process.send(data);
+            break;
+        }
+        case "setIDPorta":{
+            child_process.send(data);
+            break;
+        }
+        case "start_game":{
+            child_process.send(data);
+            break;
+        }
+        case "finishGame":{
+            child_process.send(data);
+            break;
+        }
+        case "refreshScoreGame":{
+            child_process.send(data);
+            break;
+        }
+        case "puckPosition":{
+            child_process.send(data);
+            break;
+        }
+    }
+
+});
+
+serverGame[2].on('message', (data) =>{
+    
+    switch(data.event){
+        case "myPosition":{
+            child_process.send(data);
+            break;
+        }
+        case "rivalPosition":{
+            child_process.send(data);
+            break;
+        }
+        case "moveRivalPosition":{
+            child_process.send(data);
+            break;
+        }
+        case "positionBall":{
+            child_process.send(data);
+            break;
+        }
+        case "users_game":{
+            child_process.send(data);
+            break;
+        }
+        case "setIDPorta":{
+            child_process.send(data);
+            break;
+        }
+        case "start_game":{
+            child_process.send(data);
+            break;
+        }
+        case "finishGame":{
+            child_process.send(data);
+            break;
+        }
+        case "refreshScoreGame":{
+            child_process.send(data);
+            break;
+        }
+        case "puckPosition":{
+            child_process.send(data);
+            break;
+        }
+    }
+
+});
+
+
+serverGame[3].on('message', (data) =>{
+    
+    switch(data.event){
+        case "myPosition":{
+            child_process.send(data);
+            break;
+        }
+        case "rivalPosition":{
+            child_process.send(data);
+            break;
+        }
+        case "moveRivalPosition":{
+            child_process.send(data);
+            break;
+        }
+        case "positionBall":{
+            child_process.send(data);
+            break;
+        }
+        case "users_game":{
+            child_process.send(data);
+            break;
+        }
+        case "setIDPorta":{
+            child_process.send(data);
+            break;
+        }
+        case "start_game":{
+            child_process.send(data);
+            break;
+        }
+        case "finishGame":{
+            child_process.send(data);
+            break;
+        }
+        case "refreshScoreGame":{
+            child_process.send(data);
+            break;
+        }
+        case "puckPosition":{
+            child_process.send(data);
+            break;
+        }
+    }
+
+});
 /* COMUNICAZIONE DA PADRE A FIGLIO */
 /*
 child_process.send({
