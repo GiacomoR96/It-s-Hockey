@@ -28,7 +28,6 @@ var elementsCookie = document.cookie.split('; ');
 for(var i=0;i<elementsCookie.length;i++){
 //    console.log("CONFRONTO->",elementsCookie[i],"--- substr->",elementsCookie[i].substr(0,4));
     if(elementsCookie[i].substr(0,4)=="nick"){
-        console.log("CI PASSO!1");
         var tmp = elementsCookie[i].split('=');
         var tmp = tmp[1].split(';');
         app.nickname = tmp[0];
@@ -50,7 +49,7 @@ socket.emit("moveMyPosition",{text:"ciao"});
 socket.emit("goalSuffered",{text:"ciao"});
 */
 socket.on("users_game", (data) =>{
-    app.rival.nickname=data.nick_rival;
+    app.rival.nickname=data.rival;
     console.log("RIVALE->",app.rival.nickname);
 });
 
@@ -65,6 +64,7 @@ socket.on("myPosition", (data) =>{
 });
 
 socket.on("rivalPosition", (data) =>{
+    console.log("VALORI DATA->",data);
     app.rival.posX = data.posX;
     app.rival.posY = data.posY;
     console.log("DATI rivalPosition posX:",app.rival.posX," posY:",app.rival.posY);

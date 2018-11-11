@@ -21,7 +21,7 @@ var puck;
 var posBaseX = 400;
 var posBaseY = 450;
 
-process.on('message', (data) => {
+process.on("message", (data) => {
     console.log("SERVER_GAME ha ricevuto: ",data);
 
     switch(data.event){
@@ -34,7 +34,7 @@ process.on('message', (data) => {
             nickname1 = data.nick1;
             nickname2 = data.nick2;
 
-            for(var i=1;i<=2;i++){
+            for(var i=0;i<2;i++){
 
                 var x = initialPositionClients[0]?initialPositionClients[0]:null;
                 var y = initialPositionClients[1]?initialPositionClients[1]:null;
@@ -43,19 +43,22 @@ process.on('message', (data) => {
                 var dataCurrentClient = {
                     posX : x,
                     posY : y,
-                    nickname: i==1?nickname1:nickname2
+                    nickname: i==0?nickname1:nickname2
                 }
 
                 dataClients[i] = dataCurrentClient;
-                console.log(" ");
-                console.log("SERVER_FIGLIO_DataClient:",dataClients[i]);
+                 console.log(".....................................");
+            /*    console.log("SERVER_FIGLIO_DataClient:",dataClients[i]); */
                 punteggioPartita[i] = 0;
-                var nick = (i==1)?nickname1:nickname2;
-                var nick_rival = (i==1)?nickname2:nickname1;
-                
-                process.send({A:"CIAO",id:id,nick:nick,event:"positionBall",x: initialPositionBall[0], y:initialPositionBall[1]});
-                process.send({id:id,nick:nick,event:"users_game", nick_rival:nick_rival});
-                process.send({id:id,nick:nick,event:"setIDPorta", idPorta:i});
+                var nick = (i==0)?nickname1:nickname2;
+                var nick_rival = {
+                    rival: (i==0)?nickname2:nickname1
+                }
+                var val_i = {idPorta:i};
+                console.log("Valore nick:",nick,"Valore nick_rival:",nick_rival);
+                process.send({id:id,nick:nick,event:"positionBall",x: initialPositionBall[0], y:initialPositionBall[1]});
+                process.send({id:id,nick:nick,event:"users_game",rival:nick_rival});
+                process.send({id:id,nick:nick,event:"setIDPorta", idPorta:val_i});
                 process.send({id:id,nick:nick,event:"start_game", start:true});
             }
             break;
@@ -68,10 +71,23 @@ process.on('message', (data) => {
             break;
         }
         case "rivalPosition": {
-
-            if(data.nick==nickname1)    process.send({id:id,nick:nickname2,event:"rivalPosition",posX:dataClients[1].posX,posY:(dataClients[1].posY-500)});
-            else                        process.send({id:id,nick:nickname1,event:"rivalPosition",posX:dataClients[0].posX,posY:(dataClients[0].posY-500)});
-
+            var tmp;
+            if(data.nick==nickname1){
+                tmp = {
+                    posX : dataClients[1].posX,
+                    posY : dataClients[1].posY-500,
+                    nickname: nickname2
+                }
+                process.send({id:id,nick:nickname2,event:"rivalPosition",data:tmp});
+            }
+            else{
+                tmp = {
+                    posX : dataClients[0].posX,
+                    posY : dataClients[0].posY-500,
+                    nickname: nickname2
+                }
+                process.send({id:id,nick:nickname1,event:"rivalPosition",data:tmp});
+            }
             break;
         }
         case "puckPosition": {

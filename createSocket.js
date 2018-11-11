@@ -83,7 +83,7 @@ listener.on('connection', (client) =>{
             socket : client,
             nickname: data.nickname
         }
-        console.log("SONO DENTRO LA LOGIN!");
+    //    console.log("SONO DENTRO LA LOGIN!");
 
         if(usersSocket.length < LIMIT){
             console.log("GIOCATORE ACCETTATO");
@@ -185,13 +185,13 @@ process.on('message', (data) => {
             break;
         }
         case "positionBall":{
-            console.log("SOCKET RISPOSTA_>",data);
-            if(socketClient) console.log("SOCKET RISPOSTA - VERO");
+        //    console.log("SOCKET RISPOSTA_>",data);
+        //    if(socketClient) console.log("SOCKET RISPOSTA - VERO");
             socketClient.emit(data.event,data.x,data.y);
             break;
         }
         case "users_game":{
-            socketClient.emit(data.event,data.nick_rival);
+            socketClient.emit(data.event,data.rival);
             break;
         }
         case "setIDPorta":{
@@ -203,7 +203,7 @@ process.on('message', (data) => {
             break;
         }
         case "rivalPosition":{
-            socketClient.emit(data.event,data.posX,data.posY);
+            socketClient.emit(data.event,data.data);
             break;
         }
         case "puckPosition":{

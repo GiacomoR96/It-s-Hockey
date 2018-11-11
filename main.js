@@ -18,7 +18,7 @@ console.log("ServerPadre avviato sulla porta ",port,"...");
 var serverGame = [];
 
 for(var i=0;i<4;i++){
-    serverGame[i] = fork('serverGame.js');      // serverGame[serverGame.length]
+    serverGame[i] = fork("serverGame.js");      // serverGame[serverGame.length]
 }
 
 var usersConnected = [];
@@ -29,7 +29,7 @@ var countUsers = 0;
 var room = [false, false, false, false];
 
 /* COMUNICAZIONE DA FIGLIO_SOCKET A PADRE */
-child_process.on('message', (data) =>{
+child_process.on("message", (data) =>{
 
 
     /* if(indice%2==1 || indice == 0) {
@@ -55,16 +55,17 @@ child_process.on('message', (data) =>{
     console.log("PADRE_INDICE:",indiceServer);
     switch(data.event){
         case "login":{
-            console.log("PADRE - DATI ricevuti dalla socket:",data);
-            usersPlayGame[usersPlayGame.length] = data.nick;
-            countUsers++;
+        //    console.log("PADRE - DATI ricevuti dalla socket:",data);
+            usersPlayGame[countUsers] = data.nick;
+            countUsers++; 
             if(countUsers%2 == 0){
-                console.log("VOGLIO AVVIARE IL GIOCO!");
+            //    console.log("VOGLIO AVVIARE IL GIOCO!");
                 //Avviamo uno dei serverGame per iniziare la partita
 //                serverGame[serverGame.length] = fork('serverGame.js');
 
                 serverGame[indiceServer].send({event:"id",indice:indiceServer});
-                serverGame[serverGame.length-1].send({
+            //    for(var i=0;i<usersPlayGame.length;i++) console.log("**********************************PERSONE PRESENTI ",usersPlayGame[i]);
+                serverGame[indiceServer].send({
                     event:"login",
                     nick1:usersPlayGame[(usersPlayGame.length)-2],
                     nick2:usersPlayGame[(usersPlayGame.length)-1]
@@ -104,15 +105,9 @@ child_process.on('message', (data) =>{
         }
     }
 
-
-    
-
-
-  //  console.log("VALORI RICAVATI->", data, data[0],data[1],data[2]); 
-
 });
 
-serverGame[0].on('message', (data) =>{
+serverGame[0].on("message", (data) =>{
     
     switch(data.event){
         case "myPosition":{
@@ -160,7 +155,7 @@ serverGame[0].on('message', (data) =>{
 });
 
 
-serverGame[1].on('message', (data) =>{
+serverGame[1].on("message", (data) =>{
     
     switch(data.event){
         case "myPosition":{
@@ -207,7 +202,7 @@ serverGame[1].on('message', (data) =>{
 
 });
 
-serverGame[2].on('message', (data) =>{
+serverGame[2].on("message", (data) =>{
     
     switch(data.event){
         case "myPosition":{
@@ -255,7 +250,7 @@ serverGame[2].on('message', (data) =>{
 });
 
 
-serverGame[3].on('message', (data) =>{
+serverGame[3].on("message", (data) =>{
     
     switch(data.event){
         case "myPosition":{
