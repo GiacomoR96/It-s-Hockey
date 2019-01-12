@@ -16,13 +16,13 @@ var serverWebSocket = http.createServer(app);
 var listener = require('socket.io')(serverWebSocket);
 
 listener.listen(8081, function(){
-    console.log('socketServer sono in ascolto sulla porta ' + listener.address().port); 
+    console.log("socketServer sono in ascolto sulla porta " + listener.address().port); 
 });
 
-process.on('message', (data) => {
-    console.log('Processo Figlio ha ricevuto: ', data);
+/* process.on("message", (data) => {
+    console.log("Processo Figlio ha ricevuto: ", data);
 //    process.disconnect();
-});
+}); */
 
 //process.send({ it: 'Ciao', en: 'Hello' });
 
@@ -70,7 +70,7 @@ logger.on("error", (message) =>{
 
 */
 
-listener.on('connection', (client) =>{
+listener.on("connection", (client) =>{
     console.log("-----------------socketServer: Qualcuno ha mandato un messaggio sulla socket figlio!");
     
 //    console.log("contenuto:\n",client);
@@ -155,12 +155,23 @@ listener.on('connection', (client) =>{
                 nick = usersSocket[i].nickname;
             }
         }
+        //console.log("++++++++++++++++++++++++++++\n----------11111-----------------------------\n",data,"*******************************\n");
+        process.send({event:"puckPosition", data:data.data,nick:nick});
+    });
 
-        process.send({event:"puckPosition", data:data,nick:nick});
+    client.on("puckInitialize", (data) =>{
+        var nick;
+        for(var i=0;i<usersSocket.length;i++){
+            if(client == usersSocket[i].socket){
+                nick = usersSocket[i].nickname;
+            }
+        }
+
+        process.send({event:"puckInitialize", data:data,nick:nick});
     });
 });
 
-process.on('message', (data) => {
+process.on("message", (data) => {
     /* console.log("-----------");
     console.log("-----------");
     console.log(data);
@@ -187,7 +198,8 @@ process.on('message', (data) => {
         case "positionBall":{
         //    console.log("SOCKET RISPOSTA_>",data);
         //    if(socketClient) console.log("SOCKET RISPOSTA - VERO");
-            socketClient.emit(data.event,data.x,data.y);
+            console.log("++++++++++++++++++++++++++++++++++\n",data,"\n++++++++++++++++++++++++++++");
+            socketClient.emit(data.event,data.data);
             break;
         }
         case "users_game":{
@@ -207,11 +219,12 @@ process.on('message', (data) => {
             break;
         }
         case "puckPosition":{
-            socketClient.emit(data.event,data.puck);
+            console.log("------------------------------------------------------\n.........................................\nSOCKET MY POSITION->",data);
+            socketClient.emit(data.event,data.data);
             break;
         }
         case "moveRivalPosition":{
-            socketClient.emit(data.event,data.posX,data.posY);
+            socketClient.emit(data.event,data.data);
             break;
         }
         case "finishGame":{
@@ -219,7 +232,8 @@ process.on('message', (data) => {
             break;
         }
         case "refreshScoreGame":{
-            socketClient.emit(data.event,data.nickname,data.score);
+            console.log("****MEX SPEDITO****->",data);
+            socketClient.emit(data.event,data.data);
             break;
         }
     }

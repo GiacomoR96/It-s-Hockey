@@ -24,6 +24,8 @@ for(var i=0;i<4;i++){
 var usersConnected = [];
 var usersPlayGame = [];
 var countUsers = 0;
+var numUser = 0;
+var instanceServerUsers = [];
 
 /* STANZA LIBERA = false, OCCUPATA =  true */
 var room = [false, false, false, false];
@@ -38,25 +40,56 @@ child_process.on("message", (data) =>{
     else {
         int y = (indice/2)-1;
     } */
-
-    var indiceServer;
-
-    for(var i = 0; i < usersPlayGame.length; i++) {
-        if(data.nick == usersPlayGame[i]) {         
-            if(i % 2 == 1 || i == 0) {
-                indiceServer = parseInt(i/2);
+    /* Gestire il tutto con un array di oggetti
+        ove ogni indice del server corrispondono 2 nick
+        e appena arriva un messaggio, se il nick del tizio
+        che ha mandato il messaggio è gia' dentro un oggetto
+        di questo array allora l'indiceServer corrispondera'
+        al valore dell'indice dell'oggetto dove e' stato
+        trovato il record, altrimenti aspetta un nuovo avversario
+    */ 
+    var indiceServer = -1;
+    //console.log("VALORE ATTUALE RICEVUTO:",data.nick);
+//    if(usersPlayGame.includes(data.nickname)) {
+//        console.log("SONO DENTRO .includes");
+    for(var i=0;i<instanceServerUsers.length;i++){
+        //console.log("CICLO SINO A :",instanceServerUsers.length);
+        if(instanceServerUsers[i].nick1==data.nick || instanceServerUsers[i].nick2==data.nick){
+            indiceServer = instanceServerUsers[i].indice;
+            //console.log("HO PRELEVATO IL VALORE: ",indiceServer,"! (",instanceServerUsers[i].indice,")");
+        }
+    }
+    if(indiceServer==-1){
+        usersPlayGame[numUser] = data.nick;
+        numUser++;
+        
+        //console.log("Incremento... ");
+        if(numUser % 2 == 0 && room.includes(false)){
+            indiceServer = room.indexOf(false);
+            room[indiceServer] = true;
+            //console.log("valori presenti dentro usersPlayGame->",usersPlayGame);
+        
+            instanceServerUsers[indiceServer]={ indice:indiceServer, nick1:usersPlayGame[(usersPlayGame.length)-2], nick2:usersPlayGame[(usersPlayGame.length)-1], blabla:-1 };
+           //console.log("TERNA--->",instanceServerUsers[indiceServer]);
+        }
+    }
+    //for(var i = 0; i < usersPlayGame.length; i++) {
+        
+    //    if(data.nick == usersPlayGame[i]) {         
+            
+            /*     indiceServer = parseInt(i/2);
             }
             else{
                 indiceServer = (i/2)-1;
             }
-            i = usersPlayGame.length;
-        }
-    }
+            i = usersPlayGame.length; */
+        //}
+    //}
     console.log("PADRE_INDICE:",indiceServer);
     switch(data.event){
         case "login":{
+            console.log("---------------SONO DENTRO la LOGIN con ",data.nick);
         //    console.log("PADRE - DATI ricevuti dalla socket:",data);
-            usersPlayGame[countUsers] = data.nick;
             countUsers++; 
             if(countUsers%2 == 0){
             //    console.log("VOGLIO AVVIARE IL GIOCO!");
@@ -99,11 +132,21 @@ child_process.on("message", (data) =>{
         }
         case "puckPosition":{
             console.log("EVENTO puckPosition DA:",data.nick);
+            //console.log("******************************************\n+++++++++++++++++++++++++++++++++++++++++++\nPADRE MY POSITION->",data);
+            
+            serverGame[indiceServer].send({event:"id",indice:indiceServer});
+            serverGame[indiceServer].send(data);
+            break;
+        }
+        case "puckInitialize":{
+            console.log("EVENTO puckInitialize DA:",data.nick);
             serverGame[indiceServer].send({event:"id",indice:indiceServer});
             serverGame[indiceServer].send(data);
             break;
         }
     }
+
+    console.log("NICK PRESENTI ALLA FINE:",usersPlayGame);
 
 });
 
@@ -147,6 +190,7 @@ serverGame[0].on("message", (data) =>{
             break;
         }
         case "puckPosition":{
+            //console.log("SUCA PADRE->",data);
             child_process.send(data);
             break;
         }
@@ -312,29 +356,39 @@ var serverHTTP = http.createServer((req,res) =>{
 
         console.log(req.url);
 
-        if(req.url.indexOf('.html') != -1){ //req.url has the pathname, check if it conatins '.html'
-
-            fs.readFile(__dirname + '/Index.html', function (err, data) {
+        if(req.url.indexOf('index.html') != -1){
+                fs.readFile(__dirname + '/index.html', function (err, data) {
                 if (err) console.log(err);
                 res.writeHead(200, {'Content-Type': 'text/html'});
                 res.write(data);
                 res.end();
             });
-
         }
-
-        else if(req.url.indexOf('phaser.js') != -1){ //req.url has the pathname, check if it conatins '.js'
-
+        else if(req.url.indexOf('registration.html') != -1){
+            fs.readFile(__dirname + '/registration.html', function (err, data) {
+                if (err) console.log(err);
+                res.writeHead(200, {'Content-Type': 'text/html'});
+                res.write(data);
+                res.end();
+            });
+        }
+        else if(req.url.indexOf('contact.html') != -1){
+            fs.readFile(__dirname + '/contact.html', function (err, data) {
+                if (err) console.log(err);
+                res.writeHead(200, {'Content-Type': 'text/html'});
+                res.write(data);
+                res.end();
+            });
+        }
+        else if(req.url.indexOf('phaser.js') != -1){
             fs.readFile(__dirname + '/www/js/phaser.js', function (err, data) {
             if (err) console.log(err);
             res.writeHead(200, {'Content-Type': 'text/javascript'});
             res.write(data);
             res.end();
             });
-    
         }
-        else if(req.url.indexOf('socket.io.js') != -1){ //req.url has the pathname, check if it conatins '.js'
-
+        else if(req.url.indexOf('socket.io.js') != -1){
             fs.readFile(__dirname + '/www/js/socket.io.js', function (err, data) {
             if (err) console.log(err);
             res.writeHead(200, {'Content-Type': 'text/javascript'});
@@ -343,29 +397,73 @@ var serverHTTP = http.createServer((req,res) =>{
             });
     
         }
-        else if(req.url.indexOf('game.js') != -1){ //req.url has the pathname, check if it conatins '.js'
-
+        else if(req.url.indexOf('game.js') != -1){
             fs.readFile(__dirname + '/www/js/game.js', function (err, data) {
             if (err) console.log(err);
             res.writeHead(200, {'Content-Type': 'text/javascript'});
             res.write(data);
             res.end();
-            });
-    
+            });    
         }
-        else if(req.url.indexOf('test.js') != -1){ //req.url has the pathname, check if it conatins '.js'
-
+        else if(req.url.indexOf('test.js') != -1){ 
             fs.readFile(__dirname + '/www/js/test.js', function (err, data) {
             if (err) console.log(err);
             res.writeHead(200, {'Content-Type': 'text/javascript'});
             res.write(data);
             res.end();
             });
-    
         }
-        else if(req.url.indexOf('sfondoWeb2.png') != -1){ //req.url has the pathname, check if it conatins '.js'
+        else if(req.url.indexOf('js/modernizr-2.6.2.min.js') != -1){ 
+            fs.readFile(__dirname + '/js/modernizr-2.6.2.min.js', function (err, data) {
+            if (err) console.log(err);
+            res.writeHead(200, {'Content-Type': 'text/javascript'});
+            res.write(data);
+            res.end();
+            });
+        }
+        else if(req.url.indexOf('js/jquery.min.js') != -1){ 
+            fs.readFile(__dirname + '/js/jquery.min.js', function (err, data) {
+            if (err) console.log(err);
+            res.writeHead(200, {'Content-Type': 'text/javascript'});
+            res.write(data);
+            res.end();
+            });
+        }
+        else if(req.url.indexOf('js/jquery.easing.1.3.js') != -1){ 
+            fs.readFile(__dirname + '/js/jquery.easing.1.3.js', function (err, data) {
+            if (err) console.log(err);
+            res.writeHead(200, {'Content-Type': 'text/javascript'});
+            res.write(data);
+            res.end();
+            });
+        }
+        else if(req.url.indexOf('js/bootstrap.min.js') != -1){ 
+            fs.readFile(__dirname + '/js/bootstrap.min.js', function (err, data) {
+            if (err) console.log(err);
+            res.writeHead(200, {'Content-Type': 'text/javascript'});
+            res.write(data);
+            res.end();
+            });
+        }
+        else if(req.url.indexOf('js/jquery.waypoints.min.js') != -1){ 
+            fs.readFile(__dirname + '/js/jquery.waypoints.min.js', function (err, data) {
+            if (err) console.log(err);
+            res.writeHead(200, {'Content-Type': 'text/javascript'});
+            res.write(data);
+            res.end();
+            });
+        }
+        else if(req.url.indexOf('js/main.js') != -1){ 
+            fs.readFile(__dirname + '/js/main.js', function (err, data) {
+            if (err) console.log(err);
+            res.writeHead(200, {'Content-Type': 'text/javascript'});
+            res.write(data);
+            res.end();
+            });
+        }
+        else if(req.url.indexOf('sfondoWeb2.png') != -1){ 
 
-            fs.readFile(__dirname + '/www/img/sfondoWeb2.png', function (err, data) {
+            fs.readFile(__dirname + '/images/sfondoWeb2.png', function (err, data) {
             if (err) console.log(err);
             res.writeHead(200, {'Content-Type': 'text/html'});
             res.write(data);
@@ -373,8 +471,354 @@ var serverHTTP = http.createServer((req,res) =>{
             });
     
         }
-        else if(req.url.indexOf('style.css') != -1){ //req.url has the pathname, check if it conatins '.css'
+        else if(req.url.indexOf('Sfondo_.png') != -1){ 
 
+            fs.readFile(__dirname + '/www/img/Sfondo_.png', function (err, data) {
+            if (err) console.log(err);
+            res.writeHead(200, {'Content-Type': 'text/html'});
+            res.write(data);
+            res.end();
+            });
+        }
+        else if(req.url.indexOf('lineRed.png') != -1){ 
+
+            fs.readFile(__dirname + '/www/img/lineRed.png', function (err, data) {
+            if (err) console.log(err);
+            res.writeHead(200, {'Content-Type': 'text/html'});
+            res.write(data);
+            res.end();
+            });
+        }
+        else if(req.url.indexOf('lineRedsmall.png') != -1){ 
+
+            fs.readFile(__dirname + '/www/img/lineRedSmall.png', function (err, data) {
+            if (err) console.log(err);
+            res.writeHead(200, {'Content-Type': 'text/html'});
+            res.write(data);
+            res.end();
+            });
+        }
+        else if(req.url.indexOf('lineGreen.png') != -1){ 
+
+            fs.readFile(__dirname + '/www/img/lineGreen.png', function (err, data) {
+            if (err) console.log(err);
+            res.writeHead(200, {'Content-Type': 'text/html'});
+            res.write(data);
+            res.end();
+            });
+        }
+        else if(req.url.indexOf('lineGreenSmall.png') != -1){ 
+
+            fs.readFile(__dirname + '/www/img/lineGreenSmall.png', function (err, data) {
+            if (err) console.log(err);
+            res.writeHead(200, {'Content-Type': 'text/html'});
+            res.write(data);
+            res.end();
+            });
+        }
+        else if(req.url.indexOf('lineYellow.png') != -1){ 
+
+            fs.readFile(__dirname + '/www/img/lineYellow.png', function (err, data) {
+            if (err) console.log(err);
+            res.writeHead(200, {'Content-Type': 'text/html'});
+            res.write(data);
+            res.end();
+            });
+        }
+        else if(req.url.indexOf('lineYellowSmall.png') != -1){ 
+
+            fs.readFile(__dirname + '/www/img/lineYellowSmall.png', function (err, data) {
+            if (err) console.log(err);
+            res.writeHead(200, {'Content-Type': 'text/html'});
+            res.write(data);
+            res.end();
+            });
+        }
+        else if(req.url.indexOf('lineBlue.png') != -1){ 
+
+            fs.readFile(__dirname + '/www/img/lineBlue.png', function (err, data) {
+            if (err) console.log(err);
+            res.writeHead(200, {'Content-Type': 'text/html'});
+            res.write(data);
+            res.end();
+            });
+        }
+        else if(req.url.indexOf('lineBlueSmall.png') != -1){ 
+
+            fs.readFile(__dirname + '/www/img/lineBlueSmall.png', function (err, data) {
+            if (err) console.log(err);
+            res.writeHead(200, {'Content-Type': 'text/html'});
+            res.write(data);
+            res.end();
+            });
+        }
+        else if(req.url.indexOf('lineCyan.png') != -1){ 
+
+            fs.readFile(__dirname + '/www/img/lineCyan.png', function (err, data) {
+            if (err) console.log(err);
+            res.writeHead(200, {'Content-Type': 'text/html'});
+            res.write(data);
+            res.end();
+            });
+        }
+        else if(req.url.indexOf('lineCyanSmall.png') != -1){ 
+
+            fs.readFile(__dirname + '/www/img/lineCyanSmall.png', function (err, data) {
+            if (err) console.log(err);
+            res.writeHead(200, {'Content-Type': 'text/html'});
+            res.write(data);
+            res.end();
+            });
+        }
+        else if(req.url.indexOf('porta.png') != -1){ 
+
+            fs.readFile(__dirname + '/www/img/porta.png', function (err, data) {
+            if (err) console.log(err);
+            res.writeHead(200, {'Content-Type': 'text/html'});
+            res.write(data);
+            res.end();
+            });
+        }
+        else if(req.url.indexOf('striker.png') != -1){
+            fs.readFile(__dirname + '/www/img/striker.png', function (err, data) {
+            if (err) console.log(err);
+            res.writeHead(200, {'Content-Type': 'text/html'});
+            res.write(data);
+            res.end();
+            });
+        }
+        else if(req.url.indexOf('puck.png') != -1){ 
+            console.log("ciaone");
+            fs.readFile(__dirname + '/www/img/puck.png', function (err, data) {
+            if (err) console.log(err);
+            res.writeHead(200, {'Content-Type': 'text/html'});
+            res.write(data);
+            res.end();
+            });
+        }
+        else if(req.url.indexOf('img_bg_1.jpg') != -1){ 
+            fs.readFile(__dirname + '/images/img_bg_1.jpg', function (err, data) {
+            if (err) console.log(err);
+            res.writeHead(200, {'Content-Type': 'text/html'});
+            res.write(data);
+            res.end();
+            });
+        }
+        else if(req.url.indexOf('img_bg_2.jpg') != -1){ 
+            fs.readFile(__dirname + '/images/img_bg_2.jpg', function (err, data) {
+            if (err) console.log(err);
+            res.writeHead(200, {'Content-Type': 'text/html'});
+            res.write(data);
+            res.end();
+            });
+        }
+        else if(req.url.indexOf('loader.gif') != -1){ 
+            fs.readFile(__dirname + '/images/loader.gif', function (err, data) {
+            if (err) console.log(err);
+            res.writeHead(200, {'Content-Type': 'text/html'});
+            res.write(data);
+            res.end();
+            });
+        }
+        else if(req.url.indexOf('loc.png') != -1){ 
+            fs.readFile(__dirname + '/images/loc.png', function (err, data) {
+            if (err) console.log(err);
+            res.writeHead(200, {'Content-Type': 'text/html'});
+            res.write(data);
+            res.end();
+            });
+        }
+        else if(req.url.indexOf('person1.jpg') != -1){ 
+            fs.readFile(__dirname + '/images/person1.jpg', function (err, data) {
+            if (err) console.log(err);
+            res.writeHead(200, {'Content-Type': 'text/html'});
+            res.write(data);
+            res.end();
+            });
+        }
+        else if(req.url.indexOf('work-1.jpg') != -1){ 
+            fs.readFile(__dirname + '/images/work-1.jpg', function (err, data) {
+            if (err) console.log(err);
+            res.writeHead(200, {'Content-Type': 'text/html'});
+            res.write(data);
+            res.end();
+            });
+        }
+        else if(req.url.indexOf('work-2.jpg') != -1){ 
+            fs.readFile(__dirname + '/images/work-2.jpg', function (err, data) {
+            if (err) console.log(err);
+            res.writeHead(200, {'Content-Type': 'text/html'});
+            res.write(data);
+            res.end();
+            });
+        }
+        else if(req.url.indexOf('work-3.jpg') != -1){ 
+            fs.readFile(__dirname + '/images/work-3.jpg', function (err, data) {
+            if (err) console.log(err);
+            res.writeHead(200, {'Content-Type': 'text/html'});
+            res.write(data);
+            res.end();
+            });
+        }
+        else if(req.url.indexOf('work-4.jpg') != -1){ 
+            fs.readFile(__dirname + '/images/work-4.jpg', function (err, data) {
+            if (err) console.log(err);
+            res.writeHead(200, {'Content-Type': 'text/html'});
+            res.write(data);
+            res.end();
+            });
+        }
+        else if(req.url.indexOf('work-5.jpg') != -1){ 
+            fs.readFile(__dirname + '/images/work-5.jpg', function (err, data) {
+            if (err) console.log(err);
+            res.writeHead(200, {'Content-Type': 'text/html'});
+            res.write(data);
+            res.end();
+            });
+        }
+        else if(req.url.indexOf('work-6.jpg') != -1){ 
+            fs.readFile(__dirname + '/images/work-6.jpg', function (err, data) {
+            if (err) console.log(err);
+            res.writeHead(200, {'Content-Type': 'text/html'});
+            res.write(data);
+            res.end();
+            });
+        }
+
+
+
+
+
+
+
+        else if(req.url.indexOf('glyphicons-halflings-regular.eot') != -1){
+            fs.readFile(__dirname + '/fonts/bootstrap/glyphicons-halflings-regular.eot', function (err, data) {
+                if (err) console.log(err);
+                res.writeHead(200, {'Content-Type': 'text/html'});
+                res.write(data);
+                res.end();
+            });
+        }
+        else if(req.url.indexOf('glyphicons-halflings-regular.svg') != -1){
+            fs.readFile(__dirname + '/fonts/bootstrap//glyphicons-halflings-regular.svg', function (err, data) {
+                if (err) console.log(err);
+                res.writeHead(200, {'Content-Type': 'text/html'});
+                res.write(data);
+                res.end();
+            });
+        }
+        else if(req.url.indexOf('glyphicons-halflings-regular.ttf') != -1){
+            fs.readFile(__dirname + '/fonts/bootstrap/glyphicons-halflings-regular.ttf', function (err, data) {
+                if (err) console.log(err);
+                res.writeHead(200, {'Content-Type': 'text/html'});
+                res.write(data);
+                res.end();
+            });
+        }
+        else if(req.url.indexOf('glyphicons-halflings-regular.woff') != -1){
+            fs.readFile(__dirname + '/fonts/bootstrap/glyphicons-halflings-regular.woff', function (err, data) {
+                if (err) console.log(err);
+                res.writeHead(200, {'Content-Type': 'text/html'});
+                res.write(data);
+                res.end();
+            });
+        }
+        else if(req.url.indexOf('glyphicons-halflings-regular.woff2') != -1){
+            fs.readFile(__dirname + '/fonts/bootstrap/glyphicons-halflings-regular.woff2', function (err, data) {
+                if (err) console.log(err);
+                res.writeHead(200, {'Content-Type': 'text/html'});
+                res.write(data);
+                res.end();
+            });
+        }
+
+        else if(req.url.indexOf('icomoon.eot') != -1){
+            fs.readFile(__dirname + '/fonts/icomoon/icomoon.eot', function (err, data) {
+                if (err) console.log(err);
+                res.writeHead(200, {'Content-Type': 'text/html'});
+                res.write(data);
+                res.end();
+            });
+        }
+        else if(req.url.indexOf('icomoon.svg') != -1){
+            fs.readFile(__dirname + '/fonts/icomoon/icomoon.svg', function (err, data) {
+                if (err) console.log(err);
+                res.writeHead(200, {'Content-Type': 'text/html'});
+                res.write(data);
+                res.end();
+            });
+        }
+        else if(req.url.indexOf('icomoon.ttf') != -1){
+            fs.readFile(__dirname + '/fonts/icomoon/icomoon.ttf', function (err, data) {
+                if (err) console.log(err);
+                res.writeHead(200, {'Content-Type': 'text/html'});
+                res.write(data);
+                res.end();
+            });
+        }
+        else if(req.url.indexOf('icomoon.woff') != -1){
+            fs.readFile(__dirname + '/fonts/icomoon/icomoon.woff', function (err, data) {
+                if (err) console.log(err);
+                res.writeHead(200, {'Content-Type': 'text/html'});
+                res.write(data);
+                res.end();
+            });
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+        else if(req.url.indexOf('prova.css') != -1){
+            fs.readFile(__dirname + './prova.css', function (err, data) {
+                if (err) console.log(err);
+                res.writeHead(200, {'Content-Type': 'text/css'});
+                res.write(data);
+                res.end();
+            });
+        }
+        else if(req.url.indexOf('css/animate.css') != -1){
+            fs.readFile(__dirname + '/css/animate.css', function (err, data) {
+                if (err) console.log(err);
+                res.writeHead(200, {'Content-Type': 'text/css'});
+                res.write(data);
+                res.end();
+            });
+        }
+
+        else if(req.url.indexOf('css/icomoon.css') != -1){
+            fs.readFile(__dirname + '/css/icomoon.css', function (err, data) {
+                if (err) console.log(err);
+                res.writeHead(200, {'Content-Type': 'text/css'});
+                res.write(data);
+                res.end();
+            });
+        }
+        else if(req.url.indexOf('css/bootstrap.css') != -1){
+            fs.readFile(__dirname + '/css/bootstrap.css', function (err, data) {
+                if (err) console.log(err);
+                res.writeHead(200, {'Content-Type': 'text/css'});
+                res.write(data);
+                res.end();
+            });
+        }
+        else if(req.url.indexOf('css/style.css') != -1){
+            fs.readFile(__dirname + '/css/style.css', function (err, data) {
+                if (err) console.log(err);
+                res.writeHead(200, {'Content-Type': 'text/css'});
+                res.write(data);
+                res.end();
+            });
+        }
+        else if(req.url.indexOf('style.css') != -1){ //req.url has the pathname, check if it conatins '.css'
             fs.readFile(__dirname + '/www/css/style.css', function (err, data) {
                 if (err) console.log(err);
                 res.writeHead(200, {'Content-Type': 'text/css'});
@@ -392,7 +836,7 @@ var serverHTTP = http.createServer((req,res) =>{
         }
         else{
             res.writeHead(200, { "Content-Type": "text/html" });
-            fs.createReadStream("./Index.html", "UTF-8").pipe(res);
+            fs.createReadStream("./index.html", "UTF-8").pipe(res);
         }
 
 
@@ -463,11 +907,23 @@ var serverHTTP = http.createServer((req,res) =>{
                         con.query("INSERT INTO giocatore(Nickname, Password, Livello, EXP) VALUES ('"+usr+"','"+psw+"','0','0')", function (err, result, fields) {
                         
                             if(err){
-                               res.end("Utente esistente!\nCambiare Nickname"); 
+                                console.log("REGISTRAZIONE FALLITA!");
+                                fs.readFile(__dirname + '/registrationFalse.html', function (err, data) {
+                                    if (err) console.log(err);
+                                    res.writeHead(200, {'Content-Type': 'text/html'});
+                                    res.write(data);
+                                    res.end();
+                                });
+                                //res.end("Utente esistente!\nCambiare Nickname"); 
                             }
                             else{
                                 console.log("REGISTRAZIONE EFFETTUATA!");
-                                res.end("REGISTRAZIONE EFFETTUATA!\nPuoi accedere con le tue credenziali!");
+                                fs.readFile(__dirname + '/registrationTrue.html', function (err, data) {
+                                    if (err) console.log(err);
+                                    res.writeHead(200, {'Content-Type': 'text/html'});
+                                    res.write(data);
+                                    res.end();
+                                });
                             }
                         });
                     })
@@ -475,33 +931,45 @@ var serverHTTP = http.createServer((req,res) =>{
                 }
                 else if(contenitore[i]=="LoginUsr"){
                     /* ZONA QUERY SQL LOGIN */
-                    console.log("Login");
+                    console.log("Login--------------------------------");
 
                     con.connect(function(err) {
                         if (err) throw err;
                         var usr = contenitore[1];
                         var psw = contenitore[3];
-                        con.query("SELECT Nickname,Password,Livello,EXP FROM giocatore WHERE Nickname='"+usr+"'", function (err, result, fields) {
-                            if (err){}
+                        con.query("SELECT Nickname,Password,Livello,EXP FROM giocatore WHERE Nickname='"+usr+"' AND Password='"+psw+"'", function (err, result, fields) {
+                            if (err) throw err;
                             else{
-                                console.log("RESULT->",result[0].Nickname);
-                                if(result[0].Nickname==usr && result[0].Password==psw){
+                                //console.log("RESULT->",result);
+                                if(result==''){
+                                    console.log("STO CAZZO!");
+                                    fs.readFile(__dirname + '/loginError.html', function (err, data) {
+                                        if (err) console.log(err);
+                                        res.writeHead(200, {'Content-Type': 'text/html'});
+                                        res.write(data);
+                                        res.end();
+                                    }); 
+                                    //res.end("Utente NON esistente!\nRe-inserire le proprie credenziali");
+                                }
+                                else{
+                                //if(result[0].Nickname==usr && result[0].Password==psw){
                                     console.log("ACCESSO EFFETTUATO DA:",usr);
                                     usersConnected[usersConnected.length] = usr;
                                     console.log("GIOCATORE LOGGATO->",usersConnected[usersConnected.length-1]);
 
                                     console.log("VALORE RESTITUITO->",room);
                                     console.log("VALORE RESTITUITO->",room[0]);
-                                    res.setHeader('Set-Cookie', ['nick='+result[0].Nickname+'', 'liv='+result[0].Livello+'', 'ex='+result[0].EXP+'','room1='+room[0]+'','room2='+room[1]+'','room3='+room[2]+'','room4='+room[3]+'']);
+                                    res.setHeader('Set-Cookie', ['nick='+result[0].Nickname+'', 'liv='+result[0].Livello+'', 'ex='+result[0].EXP+'','room1='+room[0]+'','room2='+room[1]+'','room3='+room[2]+'','room4='+room[3]+'','namePlayer='+usersPlayGame+'']);
                                     res.writeHead(200, { "Content-Type": "text/html" });
-                                    fs.createReadStream("./MainGame.html", "UTF-8").pipe(res);
+                                    fs.createReadStream("./mainGame.html", "UTF-8").pipe(res);
 
                                 }
-                                else{  
-                                    res.end("Utente NON esistente!\nRe-inserire le proprie credenziali");
-                                }
+                                
                             }
                         });
+                        con.on('error', function(err) {
+                            console.log("[mysql error]",err);
+                          });
                     })
                 }
                 else if(contenitore[i]=="PlayGame"){
@@ -514,24 +982,15 @@ var serverHTTP = http.createServer((req,res) =>{
 
                     if(room[0]==false || room[1]==false || room[2]==false || room[3]==false){
 
-                        if((usersPlayGame.length%2)==0){
-                            // Avviare instanza figlio
-                            for(var i=0;i<room.length;i++){
-                                if(room[i]== false){
-                                    room[i] = true;
-                                    i = room.length;
-                                }
-                            }
-                        }
                         res.writeHead(200, { "Content-Type": "text/html" });
-                        fs.createReadStream("./www/StartGame.html", "UTF-8").pipe(res);
+                        fs.createReadStream("./startGame.html", "UTF-8").pipe(res);
                     
                     }
                     else{
                         // Caso nel quale tutte le stanze sono occupate 
                         res.setHeader('Set-Cookie', ['room1='+room[0]+'','room2='+room[1]+'','room3='+room[2]+'','room4='+room[3]+'']);
                         res.writeHead(200, { "Content-Type": "text/html" });
-                        fs.createReadStream("./MainGame.html", "UTF-8").pipe(res);
+                        fs.createReadStream("./mainGame.html", "UTF-8").pipe(res);
                     }
                     
                 }

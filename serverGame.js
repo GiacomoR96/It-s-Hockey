@@ -2,9 +2,6 @@
 
 var express = require("express");
 var app = express();
-var EventEmitter = require("events").EventEmitter;      //
-var logger = new EventEmitter();                        //
-var logs = require("./log");                            //
 
 console.log("ServerGiocoFiglio avviato...");
 
@@ -22,7 +19,7 @@ var posBaseX = 400;
 var posBaseY = 450;
 
 process.on("message", (data) => {
-    console.log("SERVER_GAME ha ricevuto: ",data);
+    //console.log("SERVER_GAME ha ricevuto: ",data);
 
     switch(data.event){
         case "id":{
@@ -56,7 +53,7 @@ process.on("message", (data) => {
                 }
                 var val_i = {idPorta:i};
                 console.log("Valore nick:",nick,"Valore nick_rival:",nick_rival);
-                process.send({id:id,nick:nick,event:"positionBall",x: initialPositionBall[0], y:initialPositionBall[1]});
+                process.send({id:id,nick:nick,event:"positionBall",data: initialPositionBall});
                 process.send({id:id,nick:nick,event:"users_game",rival:nick_rival});
                 process.send({id:id,nick:nick,event:"setIDPorta", idPorta:val_i});
                 process.send({id:id,nick:nick,event:"start_game", start:true});
@@ -90,12 +87,59 @@ process.on("message", (data) => {
             }
             break;
         }
+        case "puckInitialize": {
+            if(puck==undefined){
+                puck=data.data.puck;
+                console.log("INIZIALIZZO DATI DI PUCK!->",puck);
+            }
+            break;
+        }
         case "puckPosition": {
-            
-            puck = data.data.puck;
-            if(data.nick==nickname1)    process.send({id:id,nick:nickname2,event:"puckPosition",puck:puck});
-            else                        process.send({id:id,nick:nickname1,event:"puckPosition",puck:puck});
-
+            //console.log("PUCK_POSITION!!!111|!!1!1!-///0",data,"\n\n");
+            //puck = data.data.puck;
+            /* console.log("SONO ",data.nick," con PUCK!->",
+            data.data.angle,
+            data.data.angularAcceleration,
+            data.data.angularDrag,
+            data.data.angularVelocity,
+            data.data.bottom,
+            data.data.center,
+            data.data.embedded,
+            data.data.left,
+            data.data.newVelocity,
+            data.data.position,
+            data.data.prev,
+            data.data.right,
+            data.data.speed,
+            data.data.transform,
+            data.data.touching,
+            data.data.velocity,
+            data.data.wasTouching,
+            ); */
+            if(data.nick==nickname1){
+                process.send({id:id,nick:nickname2,event:"puckPosition",
+                data:data.data});
+            }
+            else{
+                process.send({id:id,nick:nickname1,event:"puckPosition",
+                data:[data.data.angle,
+                    data.data.angularAcceleration,
+                    data.data.angularDrag,
+                    data.data.angularVelocity,
+                    data.data.bottom,
+                    data.data.center,
+                    data.data.embedded,
+                    data.data.left,
+                    data.data.newVelocity,
+                    data.data.position,
+                    data.data.prev,
+                    data.data.right,
+                    data.data.speed,
+                    data.data.transform,
+                    data.data.touching,
+                    data.data.velocity,
+                    data.data.wasTouching]});
+            }
             break;
         }
         case "moveMyPosition": {
@@ -117,8 +161,8 @@ process.on("message", (data) => {
             tmp.posY=risY;
             tmp.posX=risX;
 
-            if(data.nick==nickname1)    process.send({id:id,nick:nickname2,event:"moveRivalPosition",posX:tmp.posX,posY:tmp.posY});
-            else                        process.send({id:id,nick:nickname1,event:"moveRivalPosition",posX:tmp.posX,posY:tmp.posY});
+            if(data.nick==nickname1)    process.send({id:id,nick:nickname2,event:"moveRivalPosition",data:[tmp.posX,tmp.posY]});
+            else                        process.send({id:id,nick:nickname1,event:"moveRivalPosition",data:[tmp.posX,tmp.posY]});
 
             break;
         }
@@ -132,11 +176,11 @@ process.on("message", (data) => {
                 process.send({id:id,nick:nickname2,event:"finishGame"});
             }
 
-            process.send({id:id,nick:nickname1,event:"refreshScoreGame",nickname: nickname1, score:punteggioPartita[0]});
-            process.send({id:id,nick:nickname1,event:"refreshScoreGame",nickname: nickname2, score:punteggioPartita[1]});
+            process.send({id:id,nick:nickname1,event:"refreshScoreGame",data: [nickname1, punteggioPartita[0]]});
+            process.send({id:id,nick:nickname1,event:"refreshScoreGame",data: [nickname2, punteggioPartita[1]]});
 
-            process.send({id:id,nick:nickname2,event:"refreshScoreGame",nickname: nickname1, score:punteggioPartita[0]});
-            process.send({id:id,nick:nickname2,event:"refreshScoreGame",nickname: nickname2, score:punteggioPartita[1]});
+            process.send({id:id,nick:nickname2,event:"refreshScoreGame",data: [nickname1, punteggioPartita[0]]});
+            process.send({id:id,nick:nickname2,event:"refreshScoreGame",data: [nickname2, punteggioPartita[1]]});
             
             break;
         }
