@@ -116,11 +116,13 @@ process.on("message", (data) => {
             data.data.velocity,
             data.data.wasTouching,
             ); */
-            if(data.nick==nickname1){
-                process.send({id:id,nick:nickname2,event:"puckPosition",
+            var name = (data.nick==nickname1)?nickname2:nickname1;
+                //console.log("MANDO 111!");
+                process.send({id:id,nick:name,event:"puckPosition",
                 data:data.data});
-            }
-            else{
+            //}
+            /* else{
+                console.log("MANDO 222!");
                 process.send({id:id,nick:nickname1,event:"puckPosition",
                 data:[data.data.angle,
                     data.data.angularAcceleration,
@@ -139,7 +141,7 @@ process.on("message", (data) => {
                     data.data.touching,
                     data.data.velocity,
                     data.data.wasTouching]});
-            }
+            } */
             break;
         }
         case "moveMyPosition": {

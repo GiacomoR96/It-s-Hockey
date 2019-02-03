@@ -219,7 +219,7 @@ process.on("message", (data) => {
             break;
         }
         case "puckPosition":{
-            console.log("------------------------------------------------------\n.........................................\nSOCKET MY POSITION->",data);
+        //    console.log("------------------------------------------------------\n.........................................\nSOCKET MY POSITION->",data);
             socketClient.emit(data.event,data.data);
             break;
         }
