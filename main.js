@@ -85,7 +85,7 @@ child_process.on("message", (data) =>{
             i = usersPlayGame.length; */
         //}
     //}
-    console.log("PADRE_INDICE:",indiceServer);
+    //console.log("PADRE_INDICE:",indiceServer);
     switch(data.event){
         case "login":{
             console.log("---------------SONO DENTRO la LOGIN con ",data.nick);
@@ -146,7 +146,7 @@ child_process.on("message", (data) =>{
         }
     }
 
-    console.log("NICK PRESENTI ALLA FINE:",usersPlayGame);
+    //console.log("NICK PRESENTI ALLA FINE:",usersPlayGame);
 
 });
 
@@ -350,7 +350,7 @@ child_process.send({
 var serverHTTP = http.createServer((req,res) =>{
 
 
-//    console.log("Messaggio ricevuto", req.url);
+    console.log("Messaggio ricevuto", req.url);
 
     if (req.method == "GET") {
 
@@ -362,6 +362,7 @@ var serverHTTP = http.createServer((req,res) =>{
                 res.writeHead(200, {'Content-Type': 'text/html'});
                 res.write(data);
                 res.end();
+                console.log("MARCOMERDA");
             });
         }
         else if(req.url.indexOf('registration.html') != -1){
@@ -374,6 +375,14 @@ var serverHTTP = http.createServer((req,res) =>{
         }
         else if(req.url.indexOf('contact.html') != -1){
             fs.readFile(__dirname + '/contact.html', function (err, data) {
+                if (err) console.log(err);
+                res.writeHead(200, {'Content-Type': 'text/html'});
+                res.write(data);
+                res.end();
+            });
+        }
+        else if(req.url.indexOf('ENDGame.html') != -1){
+            fs.readFile(__dirname + '/ENDGame.html', function (err, data) {
                 if (err) console.log(err);
                 res.writeHead(200, {'Content-Type': 'text/html'});
                 res.write(data);
@@ -896,6 +905,12 @@ var serverHTTP = http.createServer((req,res) =>{
                     res.writeHead(200, { "Content-Type": "text/html" });
                     fs.createReadStream("./Registration.html", "UTF-8").pipe(res);
                 }
+                else if(contenitore[i]=="btnMainGame"){
+                    /* Re-Indirizzamento form registrazione */
+                    console.log("Ritorno sulla pagina MainGame...!");
+                    res.writeHead(200, { "Content-Type": "text/html" });
+                    fs.createReadStream("./mainGame.html", "UTF-8").pipe(res);
+                }
                 else if(contenitore[i]=="RegUsername"){
                     /* ZONA QUERY SQL REGISTRATION */
                     console.log("Registrazione");
@@ -942,7 +957,7 @@ var serverHTTP = http.createServer((req,res) =>{
                             else{
                                 //console.log("RESULT->",result);
                                 if(result==''){
-                                    console.log("STO CAZZO!");
+                                    //console.log("STO CAZZO!");
                                     fs.readFile(__dirname + '/loginError.html', function (err, data) {
                                         if (err) console.log(err);
                                         res.writeHead(200, {'Content-Type': 'text/html'});
@@ -959,7 +974,7 @@ var serverHTTP = http.createServer((req,res) =>{
 
                                     console.log("VALORE RESTITUITO->",room);
                                     console.log("VALORE RESTITUITO->",room[0]);
-                                    res.setHeader('Set-Cookie', ['nick='+result[0].Nickname+'', 'liv='+result[0].Livello+'', 'ex='+result[0].EXP+'','room1='+room[0]+'','room2='+room[1]+'','room3='+room[2]+'','room4='+room[3]+'','namePlayer='+usersPlayGame+'']);
+                                    res.setHeader('Set-Cookie', ['nick='+result[0].Nickname+'', 'liv='+result[0].Livello+'', 'ex='+result[0].EXP+'','esp_prev='+result[0].EXP+'','room1='+room[0]+'','room2='+room[1]+'','room3='+room[2]+'','room4='+room[3]+'','namePlayer='+usersPlayGame+'']);
                                     res.writeHead(200, { "Content-Type": "text/html" });
                                     fs.createReadStream("./mainGame.html", "UTF-8").pipe(res);
 

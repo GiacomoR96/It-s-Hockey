@@ -13,7 +13,7 @@ var dataClients = [];
 var initialPositionClients = [400,700,400,700];
 var initialPositionBall = [400,450];    //400,565
 var punteggioPartita = [];
-var punteggioFinale = 20;               //7
+var punteggioFinale = 1;               //7
 var puck;
 var posBaseX = 400;
 var posBaseY = 450;
