@@ -232,7 +232,7 @@ process.on("message", (data) => {
             break;
         }
         case "refreshScoreGame":{
-            console.log("****MEX SPEDITO****->",data);
+            //console.log("****MEX SPEDITO****->",data);
             socketClient.emit(data.event,data.data);
             break;
         }

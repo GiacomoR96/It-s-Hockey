@@ -13,7 +13,7 @@ var dataClients = [];
 var initialPositionClients = [400,700,400,700];
 var initialPositionBall = [400,450];    //400,565
 var punteggioPartita = [];
-var punteggioFinale = 1;               //7
+var punteggioFinale = 2;               //7
 var puck;
 var posBaseX = 400;
 var posBaseY = 450;
@@ -30,7 +30,7 @@ process.on("message", (data) => {
 
             nickname1 = data.nick1;
             nickname2 = data.nick2;
-
+            
             for(var i=0;i<2;i++){
 
                 var x = initialPositionClients[0]?initialPositionClients[0]:null;
@@ -176,6 +176,11 @@ process.on("message", (data) => {
             if(punteggioPartita[0] >= punteggioFinale || punteggioPartita[1] >= punteggioFinale){
                 process.send({id:id,nick:nickname1,event:"finishGame"});
                 process.send({id:id,nick:nickname2,event:"finishGame"});
+                //  punteggioPartita[1] == nickname1
+                //  punteggioPartita[0] == nickname2
+                //      console.log("NICKNAME 1-",nickname1,punteggioPartita[1]);
+                //      console.log("NICKNAME 2-",nickname2,punteggioPartita[0]);
+                process.send({id:id,event:"updateDataDB",nick1:nickname1,nick2:nickname2,winner:punteggioPartita[1]>punteggioPartita[0]?nickname1:nickname2});
             }
 
             process.send({id:id,nick:nickname1,event:"refreshScoreGame",data: [nickname1, punteggioPartita[0]]});

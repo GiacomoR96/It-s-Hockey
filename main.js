@@ -16,6 +16,13 @@ var child_process = fork('createSocket.js');
 console.log("ServerPadre avviato sulla porta ",port,"...");
 
 var serverGame = [];
+var finalDataUsers = [];
+
+var livEXP = [10,25,45,75,115,165,230,310,405,530];
+var pointWinner=7;
+var pointLoser=3;
+// 10 15 20 30 40 50 65 80 95 125
+
 
 for(var i=0;i<4;i++){
     serverGame[i] = fork("serverGame.js");      // serverGame[serverGame.length]
@@ -150,6 +157,130 @@ child_process.on("message", (data) =>{
 
 });
 
+updateStatPlayers = (data) =>{
+    finalDataUsers[data.id]={nick1:data.nick1,nick2:data.nick2,winner:data.winner};
+    console.log("OGGETTO------------------>",finalDataUsers[data.id]);
+    
+    console.log("Mi collego al DB...")
+    var con = mysql.createConnection({
+        host: "127.0.0.1",
+        user: "root",
+        password: "",
+        database: "dbgiocohockey"
+    });
+    if(con){
+        console.log("Connessione al DB effettuata!");
+    }
+    else{
+        console.log("Connessione Fallita!")
+    }
+
+    con.connect(function(err) {
+        if (err) throw err;
+        
+        var liv;
+        var exp;
+
+        //Winner
+        
+        var usrWinner = finalDataUsers[data.id].nick1==finalDataUsers[data.id].winner?finalDataUsers[data.id].nick1:finalDataUsers[data.id].nick2;
+        console.log("USER_WINNER->",usrWinner);
+        //con.query("SELECT Livello,EXP FROM giocatore WHERE Nickname='"+usr+"' AND Password='"+psw+"'", function (err, result, fields) {
+                        
+        con.query("SELECT Livello,EXP FROM giocatore WHERE Nickname='"+usrWinner+"'", function (err, result, fields) {
+        if (err) throw err;
+        else{
+            if(result==''){
+                //console.log("STO CAZZO!");            
+            }        
+            else{
+                //console.log("\nRESULT:\n",result,"\n\n");
+                liv=result[0].Livello;
+                exp=result[0].EXP;
+
+                //console.log("1-CAZZO DI BUG,",liv,",",exp);
+
+                //console.log("W - DATI DA DB-------PRIMA----->",liv,"_",exp);
+
+                exp+=pointWinner;
+                if(liv < livEXP.length && exp >= livEXP[liv]  ) liv++;
+
+                con.query("UPDATE giocatore SET Livello='"+liv+"', EXP='"+exp+"' WHERE Nickname='"+usrWinner+"'", function (err, result, fields) {
+                    if (err) throw err;
+                    else{
+                        //console.log("W - RISULTATO DB DOPO->",result);                   
+                    }
+                });
+                con.on('error', function(err) {
+                    console.log("W - [mysql error]",err);
+                });
+
+            }
+        }
+        });
+        con.on('error', function(err) {
+            console.log("W - [mysql error]",err);
+        });
+        
+        
+        
+        //Loser
+
+        var usrLoser = finalDataUsers[data.id].nick1!=finalDataUsers[data.id].winner?finalDataUsers[data.id].nick1:finalDataUsers[data.id].nick2;
+
+        con.query("SELECT Livello,EXP FROM giocatore WHERE Nickname='"+usrLoser+"'", function (err, result, fields) {
+            if (err) throw err;
+            else{
+                if(result==''){
+                    //console.log("STO CAZZO!");            
+                }        
+                else{
+                    //console.log("\nRESULT:\n",result,"\n\n");
+                    liv=result[0].Livello;
+                    exp=result[0].EXP;
+    
+                    //console.log("2-CAZZO DI BUG,",liv,",",exp);
+    
+                    //console.log("L - DATI DA DB-------PRIMA----->",liv,"_",exp);
+    
+                    exp+=pointLoser;
+                    if(liv < livEXP.length && exp >= livEXP[liv]  ) liv++;
+    
+                    con.query("UPDATE giocatore SET Livello='"+liv+"', EXP='"+exp+"' WHERE Nickname='"+usrLoser+"'", function (err, result, fields) {
+                        if (err) throw err;
+                        else{
+                            //console.log("L - RISULTATO DB DOPO->",result);                   
+                        }
+                    });
+                    con.on('error', function(err) {
+                        console.log("L - [mysql error]",err);
+                    });
+    
+                }
+            }
+        });
+        con.on('error', function(err) {
+            console.log("L - [mysql error]",err);
+        });
+
+       /* //TEST
+        con.query("SELECT Nickname,Livello,EXP FROM giocatore", function (err, result, fields) {
+        if (err) throw err;
+        else{
+            for(var i=0;i<result.length;i++){
+                console.log("TEST DB ",result[i].Nickname," ",result[i].Livello," ",result[i].EXP);
+            }
+        }
+        });
+        con.on('error', function(err) {
+            console.log("W - [mysql error]",err);
+        });
+        //END TEST */
+    });
+
+}
+
+
 serverGame[0].on("message", (data) =>{
     
     switch(data.event){
@@ -193,6 +324,9 @@ serverGame[0].on("message", (data) =>{
             //console.log("SUCA PADRE->",data);
             child_process.send(data);
             break;
+        }
+        case "updateDataDB":{
+            updateStatPlayers(data);
         }
     }
 
@@ -866,20 +1000,6 @@ var serverHTTP = http.createServer((req,res) =>{
     } 
     else if (req.method == "POST") {
         
-        console.log("Mi collego al DB...")
-        var con = mysql.createConnection({
-            host: "127.0.0.1",
-            user: "root",
-            password: "",
-            database: "dbgiocohockey"
-        });
-        if(con){
-            console.log("Connessione al DB effettuata!");
-        }
-        else{
-            console.log("Connessione Fallita!")
-        }
-
         //  chunk.toString(); // convert Buffer to string
   
         let body = '';
@@ -914,7 +1034,7 @@ var serverHTTP = http.createServer((req,res) =>{
                 else if(contenitore[i]=="RegUsername"){
                     /* ZONA QUERY SQL REGISTRATION */
                     console.log("Registrazione");
-                
+
                     con.connect(function(err) {
                         if (err) throw err;
                         var usr = contenitore[1];
@@ -947,6 +1067,20 @@ var serverHTTP = http.createServer((req,res) =>{
                 else if(contenitore[i]=="LoginUsr"){
                     /* ZONA QUERY SQL LOGIN */
                     console.log("Login--------------------------------");
+
+                    console.log("Mi collego al DB...")
+                    var con = mysql.createConnection({
+                        host: "127.0.0.1",
+                        user: "root",
+                        password: "",
+                        database: "dbgiocohockey"
+                    });
+                    if(con){
+                        console.log("Connessione al DB effettuata!");
+                    }
+                    else{
+                        console.log("Connessione Fallita!")
+                    }
 
                     con.connect(function(err) {
                         if (err) throw err;
