@@ -104,9 +104,12 @@
                                     <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
                                         <div class="list-room">
                                             <h3 style="color:yellow; font-family: 'Tangerine', cursive, serif;">STANZA 1</h3>
-                                            <ul class="room-text">
+                                            <ul class="room-text prova">
                                                 <li><span id="room1_1" class="room-text">Posto libero</span></li>
-                                                <li>VS</li>
+                                                <li id="room1">VS</li>
+                                                <form method = "POST">
+                                                        <li><input id="btn1"type="hidden" class="btn btn-default" name="PlayGame" value="ENTRA"/></li>
+                                                </form>
                                                 <li><span id="room1_2" class="room-text">Posto libero</span></li>
                                             </ul>
                                         </div>
@@ -116,7 +119,10 @@
                                             <h3 style="color:yellow; font-family: 'Tangerine', cursive, serif;">STANZA 2</h3>
                                             <ul class="room-text">
                                                 <li><span id="room2_1">Posto libero</span></li>
-                                                <li>VS</li>
+                                                <li id="room2">VS</li>
+                                                <form method = "POST">
+                                                        <li><input id="btn2"type="hidden" class="btn btn-default" name="PlayGame" value="ENTRA"/></li>
+                                                </form>
                                                 <li><span id="room2_2">Posto libero</span></li>
                                             </ul>
                                         </div>	
@@ -126,7 +132,10 @@
                                             <h3 style="color:yellow; font-family: 'Tangerine', cursive, serif;">STANZA 3</h3>
                                             <ul class="room-text">
                                                 <li><span id="room3_1">Posto libero</span></li>
-                                                <li>VS</li>
+                                                <li id="room3">VS</li>
+                                                <form method = "POST">
+                                                        <li><input id="btn3"type="hidden" class="btn btn-default" name="PlayGame" value="ENTRA"/></li>
+                                                </form>
                                                 <li><span id="room3_2">Posto libero</span></li>
                                             </ul>
                                         </div>	
@@ -136,7 +145,10 @@
                                             <h3 style="color:yellow; font-family: 'Tangerine', cursive, serif;">STANZA 4</h3>
                                             <ul  class="room-text">
                                                 <li><span id="room4_1">Posto libero</span></li>
-                                                <li>VS</li>
+                                                <li id="room4">VS</li>
+                                                <form method = "POST">
+                                                        <li><input id="btn4"type="hidden" class="btn btn-default" name="PlayGame" value="ENTRA"/></li>
+                                                </form>
                                                 <li><span id="room4_2">Posto libero</span></li>
                                             </ul>
                                         </div>	
@@ -266,10 +278,7 @@
                     n[y]=name;
                     console.log("NAME:",y," ->",n[y]);
                 }
-
-
-
-                
+    
             }
 
         }
@@ -279,30 +288,79 @@
         console.log("Val room3=",_room3);
         console.log("Val room4=",_room4);
 
+        /* // CI HO PROVATO, MA RIP
+        var px=6;
+        console.log("STO CAZZO 1 \n ",document.documentElement.clientWidth);
+        if(document.documentElement.clientWidth > 600){
+            console.log("STO CAZZO 2");
+            if(document.documentElement.clientWidth < 768){
+                console.log("STO SETTANDO IL PX");
+                px=2;
+            }
+        } 
+        
+        document.getElementById("room1").setAttribute("style","margin:"+px+"%"); 
+        */
+
         if(_room1){
             document.getElementById("room1_1").innerHTML = n[0];
             document.getElementById("room1_2").innerHTML = n[1];
         }
+        else{
+            document.getElementById("room1_1").innerHTML = "";
+            document.getElementById("room1_2").innerHTML = "";
+            
+            document.getElementById("room1").innerHTML = "STANZA VUOTA";
+            document.getElementById("btn1").type = 'submit';
+        }
+
         if(_room2){
             document.getElementById("room2_1").innerHTML = n[2];
             document.getElementById("room2_2").innerHTML = n[3];
         }
+        else{
+            document.getElementById("room2_1").innerHTML = "";
+            document.getElementById("room2_2").innerHTML = "";
+            
+            document.getElementById("room2").innerHTML = "STANZA VUOTA";
+            document.getElementById("btn2").type = 'submit';
+        }
+
         if(_room3){
             document.getElementById("room3_1").innerHTML = n[4];
             document.getElementById("room3_2").innerHTML = n[5];
         }
+        else{
+            document.getElementById("room3_1").innerHTML = "";
+            document.getElementById("room3_2").innerHTML = "";
+            
+            document.getElementById("room3").innerHTML = "STANZA VUOTA";
+            document.getElementById("btn3").type = 'submit';
+        }
+
         if(_room4){
             document.getElementById("room4_1").innerHTML = n[6];
             document.getElementById("room4_2").innerHTML = n[7];
         }
+        else{
+            //Oscurare room1_1
+            //Oscurare room1_2
+            //Dare VS -> "STANZA VUOTA" + BOTTONE
+            document.getElementById("room4_1").innerHTML = "";
+            document.getElementById("room4_2").innerHTML = "";
 
-    /*    document.getElementById("nick").innerHTML = _nick;
-        document.getElementById("liv").innerHTML = _liv;
-        document.getElementById("ex").innerHTML = _exp;
-    */
+            document.getElementById("room4").innerHTML = "STANZA VUOTA";
+            document.getElementById("btn4").type = 'submit';
+        }
+
     </script>
 
-
+    <script>
+    
+        
+    
+    
+    </script>
 
 	</body>
 </html>

@@ -515,14 +515,6 @@ var serverHTTP = http.createServer((req,res) =>{
                 res.end();
             });
         }
-        else if(req.url.indexOf('ENDGame.html') != -1){
-            fs.readFile(__dirname + '/ENDGame.html', function (err, data) {
-                if (err) console.log(err);
-                res.writeHead(200, {'Content-Type': 'text/html'});
-                res.write(data);
-                res.end();
-            });
-        }
         else if(req.url.indexOf('phaser.js') != -1){
             fs.readFile(__dirname + '/www/js/phaser.js', function (err, data) {
             if (err) console.log(err);
@@ -1140,8 +1132,63 @@ var serverHTTP = http.createServer((req,res) =>{
                         res.setHeader('Set-Cookie', ['room1='+room[0]+'','room2='+room[1]+'','room3='+room[2]+'','room4='+room[3]+'']);
                         res.writeHead(200, { "Content-Type": "text/html" });
                         fs.createReadStream("./mainGame.html", "UTF-8").pipe(res);
+                    }                    
+                }
+                else if(contenitore[i]=="ENDGame"){
+                    console.log("CAZZO DI BUG!");
+                    ///789///
+                    /* for(var j=i;j<contenitore.length;j++){
+                        console.log("J=",j," ->",contenitore[j]);
+                        
+                    } */
+
+                    var ris="perso";
+                    var nick=contenitore[2];
+                    var liv;
+                    var exp;
+
+                    for(var j=0;j<finalDataUsers.length;j++){
+                        if(finalDataUsers[j].nick1==nick || finalDataUsers[j].nick2==nick){
+                            if(finalDataUsers[j].winner==nick){
+                                ris="vinto";
+                                break;
+                            }
+                        }
                     }
-                    
+
+                    var con = mysql.createConnection({
+                        host: "127.0.0.1",
+                        user: "root",
+                        password: "",
+                        database: "dbgiocohockey"
+                    });
+                    if(con){
+                        console.log("Connessione al DB effettuata!");
+                    }
+                    else{
+                        console.log("Connessione Fallita!")
+                    }
+                    con.query("SELECT Livello,EXP FROM giocatore WHERE Nickname='"+nick+"'", function (err, result, fields) {
+                    if (err) throw err;
+                    else{
+                        if(result==''){
+                            //console.log("STO CAZZO!");            
+                        }        
+                        else{
+                            liv=result[0].Livello;
+                            exp=result[0].EXP;
+                            //console.log("1-CAZZO DI BUG,",liv,",",exp); 
+                            
+                            res.setHeader('Set-Cookie', ['result='+ris+'','liv='+liv+'','ex='+exp+'']);
+                            res.writeHead(200, { "Content-Type": "text/html" });
+                            fs.createReadStream("./ENDGame.html", "UTF-8").pipe(res);
+                        }
+                    }
+                    });
+                    con.on('error', function(err) {
+                        console.log("W - [mysql error]",err);
+                    });
+                      
                 }
                 
             }
