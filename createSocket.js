@@ -77,7 +77,7 @@ listener.on("connection", (client) =>{
 
 //    console.log("CONTENUTO=>",client);
 
-    client.on("login", (data) =>{
+    client.on("requestStartGame", (data) =>{
             
         var oggettoDaSalvare = {
             socket : client,
@@ -89,7 +89,7 @@ listener.on("connection", (client) =>{
             console.log("GIOCATORE ACCETTATO");
             usersSocket[usersSocket.length] = oggettoDaSalvare;
             
-            process.send({event:"login",nick:oggettoDaSalvare.nickname }); // questo caso funziona perchè inviamo una stringa
+            process.send({event:"requestStartGame",nick:oggettoDaSalvare.nickname }); // questo caso funziona perchè inviamo una stringa
         }
         else{
             console.log("GIOCATORE RIFIUTATO");
@@ -180,6 +180,8 @@ process.on("message", (data) => {
         console.log(usersSocket[i].nickname);
     } */
 
+    console.log("MSG MANDATO: \t",data);
+
     var socketClient;
     for(var i=0;i<usersSocket.length;i++){
     //    console.log("SONO DENTRO IL CICLO");
@@ -233,6 +235,10 @@ process.on("message", (data) => {
         }
         case "refreshScoreGame":{
             //console.log("****MEX SPEDITO****->",data);
+            socketClient.emit(data.event,data.data);
+            break;
+        }
+        case "setPositionPuck":{
             socketClient.emit(data.event,data.data);
             break;
         }

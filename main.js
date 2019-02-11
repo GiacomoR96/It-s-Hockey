@@ -31,7 +31,7 @@ for(var i=0;i<4;i++){
 var usersConnected = [];
 var usersPlayGame = [];
 var countUsers = 0;
-var numUser = 0;
+//var numUser = 0;
 var instanceServerUsers = [];
 
 /* STANZA LIBERA = false, OCCUPATA =  true */
@@ -40,14 +40,7 @@ var room = [false, false, false, false];
 /* COMUNICAZIONE DA FIGLIO_SOCKET A PADRE */
 child_process.on("message", (data) =>{
 
-
-    /* if(indice%2==1 || indice == 0) {
-        int x = indice/2;
-    }
-    else {
-        int y = (indice/2)-1;
-    } */
-    /* Gestire il tutto con un array di oggetti
+    /*  Gestire il tutto con un array di oggetti
         ove ogni indice del server corrispondono 2 nick
         e appena arriva un messaggio, se il nick del tizio
         che ha mandato il messaggio è gia' dentro un oggetto
@@ -55,61 +48,37 @@ child_process.on("message", (data) =>{
         al valore dell'indice dell'oggetto dove e' stato
         trovato il record, altrimenti aspetta un nuovo avversario
     */ 
-    var indiceServer = -1;
-    //console.log("VALORE ATTUALE RICEVUTO:",data.nick);
-//    if(usersPlayGame.includes(data.nickname)) {
-//        console.log("SONO DENTRO .includes");
+    var indiceServer;
     for(var i=0;i<instanceServerUsers.length;i++){
         //console.log("CICLO SINO A :",instanceServerUsers.length);
-        if(instanceServerUsers[i].nick1==data.nick || instanceServerUsers[i].nick2==data.nick){
+        if(instanceServerUsers.length>0 && instanceServerUsers[i].nick1==data.nick || instanceServerUsers[i].nick2==data.nick){
             indiceServer = instanceServerUsers[i].indice;
-            //console.log("HO PRELEVATO IL VALORE: ",indiceServer,"! (",instanceServerUsers[i].indice,")");
+            break;
         }
     }
-    if(indiceServer==-1){
-        usersPlayGame[numUser] = data.nick;
-        numUser++;
-        
-        //console.log("Incremento... ");
-        if(numUser % 2 == 0 && room.includes(false)){
-            indiceServer = room.indexOf(false);
-            room[indiceServer] = true;
-            //console.log("valori presenti dentro usersPlayGame->",usersPlayGame);
-        
-            instanceServerUsers[indiceServer]={ indice:indiceServer, nick1:usersPlayGame[(usersPlayGame.length)-2], nick2:usersPlayGame[(usersPlayGame.length)-1], blabla:-1 };
-           //console.log("TERNA--->",instanceServerUsers[indiceServer]);
-        }
-    }
-    //for(var i = 0; i < usersPlayGame.length; i++) {
-        
-    //    if(data.nick == usersPlayGame[i]) {         
-            
-            /*     indiceServer = parseInt(i/2);
-            }
-            else{
-                indiceServer = (i/2)-1;
-            }
-            i = usersPlayGame.length; */
-        //}
-    //}
-    //console.log("PADRE_INDICE:",indiceServer);
+
     switch(data.event){
-        case "login":{
-            console.log("---------------SONO DENTRO la LOGIN con ",data.nick);
-        //    console.log("PADRE - DATI ricevuti dalla socket:",data);
-            countUsers++; 
-            if(countUsers%2 == 0){
-            //    console.log("VOGLIO AVVIARE IL GIOCO!");
-                //Avviamo uno dei serverGame per iniziare la partita
-//                serverGame[serverGame.length] = fork('serverGame.js');
+        case "requestStartGame":{
+            console.log("EVENTO requestStartGame da: ",data.nick);
+        
+            usersPlayGame[countUsers] = data.nick;
+            countUsers++;
+            
+            if(countUsers == 2){
+                indiceServer = room.indexOf(false);
+                room[indiceServer] = true;
+                ///789///
+                instanceServerUsers[indiceServer]={indice:indiceServer, nick1:usersPlayGame[(usersPlayGame.length)-2], nick2:usersPlayGame[(usersPlayGame.length)-1]};
+                console.log("TERNA instanceServerUsers: ",instanceServerUsers[indiceServer]);
 
                 serverGame[indiceServer].send({event:"id",indice:indiceServer});
-            //    for(var i=0;i<usersPlayGame.length;i++) console.log("**********************************PERSONE PRESENTI ",usersPlayGame[i]);
+                //    for(var i=0;i<usersPlayGame.length;i++) console.log("**********************************PERSONE PRESENTI ",usersPlayGame[i]);
                 serverGame[indiceServer].send({
-                    event:"login",
-                    nick1:usersPlayGame[(usersPlayGame.length)-2],
-                    nick2:usersPlayGame[(usersPlayGame.length)-1]
+                    event:"startUpServer",
+                    nick1:instanceServerUsers[indiceServer].nick1,
+                    nick2:instanceServerUsers[indiceServer].nick2
                 });
+                countUsers = 0;
             }
             break;
         }
@@ -221,9 +190,7 @@ updateStatPlayers = (data) =>{
         con.on('error', function(err) {
             console.log("W - [mysql error]",err);
         });
-        
-        
-        
+            
         //Loser
 
         var usrLoser = finalDataUsers[data.id].nick1!=finalDataUsers[data.id].winner?finalDataUsers[data.id].nick1:finalDataUsers[data.id].nick2;
@@ -278,11 +245,31 @@ updateStatPlayers = (data) =>{
         //END TEST */
     });
 
+    // STACCASTACCHIAMO TUTTO
+     
+        // KILL servergame[data.id]
+        console.log("PADRE -  Sto per staccare");
+        //process.kill(serverGame[data.id], 'SIGTERM')
+        ///////////child_process.send({id:data.id,event:"close"})
+        console.log("PADRE - Figlio ",data.id," chiuso!");
+        console.log("PRIMA--------UTENTI USERplayGAME",usersPlayGame);
+        ///789///
+
+        var index;
+        for(var i=0;i<2;i++){
+            i==0 ? index = usersPlayGame.indexOf(finalDataUsers[data.id].nick1)
+                            : index = usersPlayGame.indexOf(finalDataUsers[data.id].nick2);
+            if (index > -1) {
+                usersPlayGame.splice(index, 1);
+            }   
+        }
+        
+        console.log("DOPO.......UTENTI USERplayGAME",usersPlayGame);
 }
 
 
 serverGame[0].on("message", (data) =>{
-    
+    console.log("******************\nserverGame[0]-> ",data,"\n**************");
     switch(data.event){
         case "myPosition":{
             child_process.send(data);
@@ -327,6 +314,16 @@ serverGame[0].on("message", (data) =>{
         }
         case "updateDataDB":{
             updateStatPlayers(data);
+        }
+        case "setPositionPuck":{
+            child_process.send(data);
+            break;
+        }
+        case "stopServerGame":{
+            console.log("PADRE - RESET FIGLIO EFFETTUATO, pos:",data.id);
+            //serverGame[data.id] = fork("serverGame.js");
+            room[data.id] = false;
+            instanceServerUsers.splice(data.id,1); 
         }
     }
 
@@ -376,6 +373,19 @@ serverGame[1].on("message", (data) =>{
             child_process.send(data);
             break;
         }
+        case "updateDataDB":{
+            updateStatPlayers(data);
+        }
+        case "setPositionPuck":{
+            child_process.send(data);
+            break;
+        }
+        case "stopServerGame":{
+            console.log("PADRE - RESET FIGLIO EFFETTUATO, pos:",data.id);
+            //serverGame[data.id] = fork("serverGame.js");
+            room[data.id] = false;
+            instanceServerUsers.splice(data.id,1); 
+        }
     }
 
 });
@@ -422,6 +432,19 @@ serverGame[2].on("message", (data) =>{
         case "puckPosition":{
             child_process.send(data);
             break;
+        }
+        case "updateDataDB":{
+            updateStatPlayers(data);
+        }
+        case "setPositionPuck":{
+            child_process.send(data);
+            break;
+        }
+        case "stopServerGame":{
+            console.log("PADRE - RESET FIGLIO EFFETTUATO, pos:",data.id);
+            //serverGame[data.id] = fork("serverGame.js");
+            room[data.id] = false;
+            instanceServerUsers.splice(data.id,1); 
         }
     }
 
@@ -471,6 +494,19 @@ serverGame[3].on("message", (data) =>{
             child_process.send(data);
             break;
         }
+        case "updateDataDB":{
+            updateStatPlayers(data);
+        }
+        case "setPositionPuck":{
+            child_process.send(data);
+            break;
+        }
+        case "stopServerGame":{
+            console.log("PADRE - RESET FIGLIO EFFETTUATO, pos:",data.id);
+            //serverGame[data.id] = fork("serverGame.js");
+            room[data.id] = false;
+            instanceServerUsers.splice(data.id,1); 
+        }
     }
 
 });
@@ -484,7 +520,7 @@ child_process.send({
 var serverHTTP = http.createServer((req,res) =>{
 
 
-    console.log("Messaggio ricevuto", req.url);
+    //console.log("Messaggio ricevuto", req.url);
 
     if (req.method == "GET") {
 
@@ -496,7 +532,7 @@ var serverHTTP = http.createServer((req,res) =>{
                 res.writeHead(200, {'Content-Type': 'text/html'});
                 res.write(data);
                 res.end();
-                console.log("MARCOMERDA");
+                //console.log("MARCOMERDA");
             });
         }
         else if(req.url.indexOf('registration.html') != -1){
@@ -723,7 +759,6 @@ var serverHTTP = http.createServer((req,res) =>{
             });
         }
         else if(req.url.indexOf('puck.png') != -1){ 
-            console.log("ciaone");
             fs.readFile(__dirname + '/www/img/puck.png', function (err, data) {
             if (err) console.log(err);
             res.writeHead(200, {'Content-Type': 'text/html'});
@@ -1018,10 +1053,68 @@ var serverHTTP = http.createServer((req,res) =>{
                     fs.createReadStream("./Registration.html", "UTF-8").pipe(res);
                 }
                 else if(contenitore[i]=="btnMainGame"){
-                    /* Re-Indirizzamento form registrazione */
-                    console.log("Ritorno sulla pagina MainGame...!");
-                    res.writeHead(200, { "Content-Type": "text/html" });
-                    fs.createReadStream("./mainGame.html", "UTF-8").pipe(res);
+                    console.log("Ritorno sulla pagina MainGame...!->",contenitore);
+                    //console.log("C",contenitore[i]," C+1",contenitore[i+1]);
+                    /* exit(0);
+                    break; */
+                    var con = mysql.createConnection({
+                        host: "127.0.0.1",
+                        user: "root",
+                        password: "",
+                        database: "dbgiocohockey"
+                    });
+                    if(con){
+                        console.log("Connessione al DB effettuata!");
+                    }
+                    else{
+                        console.log("Connessione Fallita!")
+                    }
+
+                    con.connect(function(err) {
+                        if (err) throw err;
+                        var usr = contenitore[1];
+                        //console.log("SUCA ->",usr);
+                        con.query("SELECT EXP FROM giocatore WHERE Nickname='"+usr+"'", function (err, result, fields) {
+                        
+                        //con.query("SELECT EXP FROM giocatore WHERE Nickname='"+usr+"'", function (err, result, fields) {
+                            if (err) throw err;
+                            else{
+                                if(result==''){
+
+                                    //console.log("CAZZO DI BUG! ->",usr);
+                                    res.writeHead(200, { "Content-Type": "text/html" });
+                                    fs.createReadStream("./mainGame.html", "UTF-8").pipe(res);
+                                }
+                                else{
+                                    //console.log("RIS->",result);
+                                    
+                                    res.setHeader('Set-Cookie', ['ex='+result[0].EXP+'','esp_prev='+result[0].EXP+'']);
+                                    res.writeHead(200, { "Content-Type": "text/html" });
+                                    fs.createReadStream("./mainGame.html", "UTF-8").pipe(res);     
+                                }
+                            }
+                        });
+                        con.on('error', function(err) {
+                            console.log("[mysql error]",err);
+                          });
+                    })
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
                 }
                 else if(contenitore[i]=="RegUsername"){
                     /* ZONA QUERY SQL REGISTRATION */
@@ -1115,14 +1208,15 @@ var serverHTTP = http.createServer((req,res) =>{
                 }
                 else if(contenitore[i]=="PlayGame"){
                     /* Re-Indirizzamento form StartGame */
-                    console.log("PlayGame");
-
+                    ///789///
+                    /* console.log("PlayGame --->",contenitore);
+                    
                     usersPlayGame[usersPlayGame.length] = contenitore[1];
                     console.log("GIOCATORE CHE VUOLE GIOCARE->",usersPlayGame[usersPlayGame.length-1]);
-                    
-
+                     */
+                    //exit(0);
+                    //break;
                     if(room[0]==false || room[1]==false || room[2]==false || room[3]==false){
-
                         res.writeHead(200, { "Content-Type": "text/html" });
                         fs.createReadStream("./startGame.html", "UTF-8").pipe(res);
                     
