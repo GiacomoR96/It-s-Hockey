@@ -16,7 +16,7 @@ var child_process = fork('createSocket.js');
 console.log("ServerPadre avviato sulla porta ",port,"...");
 
 var serverGame = [];
-var finalDataUsers = [];
+var finalDataUsers = [0,0,0,0];
 
 var livEXP = [10,25,45,75,115,165,230,310,405,530];
 var pointWinner=7;
@@ -30,12 +30,94 @@ for(var i=0;i<4;i++){
 
 var usersConnected = [];
 var usersPlayGame = [];
-var countUsers = 0;
+var countUsers = [0,0,0,0];
+var maxNumPlayers = 8;
 //var numUser = 0;
 var instanceServerUsers = [];
 
 /* STANZA LIBERA = false, OCCUPATA =  true */
 var room = [false, false, false, false];
+
+/*
+
+console.log("requestStartGame RICEVUTO-> ",data," __>",data.stanza);
+            
+            usersPlayGame[countUsers] = data.nick;
+            countUsers++;
+            
+            // DA MODIFICARE
+            if(countUsers % 2 == 0){
+                indiceServer = room.indexOf(false);
+                room[indiceServer] = true;
+                instanceServerUsers[indiceServer]={indice:indiceServer, nick1:usersPlayGame[countUsers-2], nick2:usersPlayGame[countUsers-1]};
+                console.log("TERNA instanceServerUsers: ",instanceServerUsers[indiceServer]);
+
+                serverGame[indiceServer].send({event:"id",indice:indiceServer});
+                serverGame[indiceServer].send({
+                    event:"startUpServer",
+                    nick1:instanceServerUsers[indiceServer].nick1,
+                    nick2:instanceServerUsers[indiceServer].nick2
+                });
+                
+            }
+
+*/
+
+getNickUsers = () =>{
+    var nick1="",nick2="";
+    var userRoomPlay="";
+    if(room[0]==true){
+        
+        for(var i=0;i<usersPlayGame.length;i++){
+            if(nick1=="" && usersPlayGame[i].stanza==1)         nick1=usersPlayGame[i].nick;
+            else if(nick2=="" && usersPlayGame[i].stanza==1)    nick2=usersPlayGame[i].nick;
+            if(nick1!="" && nick2!="") break;
+        }
+        userRoomPlay+=""+nick1+","+nick2+",";
+        nick1=nick2="";
+        console.log("Passo da 0-> ",userRoomPlay);
+    }
+    else    userRoomPlay+="_,_,";
+    if(room[1]==true){
+        
+        for(var i=0;i<usersPlayGame.length;i++){
+            if(nick1=="" && usersPlayGame[i].stanza==2)         nick1=usersPlayGame[i].nick;
+            else if(nick2=="" && usersPlayGame[i].stanza==2)    nick2=usersPlayGame[i].nick;
+            if(nick1!="" && nick2!="") break;
+        }
+        userRoomPlay+=""+nick1+","+nick2+",";
+        nick1=nick2="";
+        console.log("Passo da 1-> ",userRoomPlay);
+    }
+    else    userRoomPlay+="_,_,";
+    if(room[2]==true){
+        
+        for(var i=0;i<usersPlayGame.length;i++){
+            if(nick1=="" && usersPlayGame[i].stanza==3)         nick1=usersPlayGame[i].nick;
+            else if(nick2=="" && usersPlayGame[i].stanza==3)    nick2=usersPlayGame[i].nick;
+            if(nick1!="" && nick2!="") break;
+        }
+        userRoomPlay+=""+nick1+","+nick2+",";
+        nick1=nick2="";
+        console.log("Passo da 2-> ",userRoomPlay);
+    }
+    else    userRoomPlay+="_,_,";
+    if(room[3]==true){
+        
+        for(var i=0;i<usersPlayGame.length;i++){
+            if(nick1=="" && usersPlayGame[i].stanza==4)         nick1=usersPlayGame[i].nick;
+            else if(nick2=="" && usersPlayGame[i].stanza==4)    nick2=usersPlayGame[i].nick;
+            if(nick1!="" && nick2!="") break;
+        }
+        userRoomPlay+=""+nick1+","+nick2+",";
+        nick1=nick2="";
+        console.log("Passo da 3-> ",userRoomPlay);
+    }
+    else    userRoomPlay+="_,_";
+
+    return userRoomPlay;
+}
+
 
 /* COMUNICAZIONE DA FIGLIO_SOCKET A PADRE */
 child_process.on("message", (data) =>{
@@ -48,9 +130,9 @@ child_process.on("message", (data) =>{
         al valore dell'indice dell'oggetto dove e' stato
         trovato il record, altrimenti aspetta un nuovo avversario
     */ 
+   
     var indiceServer;
     for(var i=0;i<instanceServerUsers.length;i++){
-        //console.log("CICLO SINO A :",instanceServerUsers.length);
         if(instanceServerUsers.length>0 && instanceServerUsers[i].nick1==data.nick || instanceServerUsers[i].nick2==data.nick){
             indiceServer = instanceServerUsers[i].indice;
             break;
@@ -59,27 +141,68 @@ child_process.on("message", (data) =>{
 
     switch(data.event){
         case "requestStartGame":{
-            console.log("EVENTO requestStartGame da: ",data.nick);
-        
-            usersPlayGame[countUsers] = data.nick;
+            
+            console.log("requestStartGame RICEVUTO-> ",data," __>",data.stanza);
+            
+            var userData = {
+                nick: data.nick,
+                stanza: data.stanza
+            };
+
+            usersPlayGame[usersPlayGame.length]=userData;
+            console.log("OGGETTO SALVATO= ",usersPlayGame);
+            if(data.stanza>=1 && data.stanza<=4){
+                countUsers[(data.stanza)-1]++;
+
+                if(countUsers[(data.stanza)-1]==2){
+                    room[(data.stanza)-1]=true;
+
+                    var nick1="",nick2="";
+                    for(var i=0;i<usersPlayGame.length;i++){
+                        console.log("OGGETTO CORRENTE= ",usersPlayGame[i],", di stanza->",usersPlayGame[i].stanza);
+            
+                        if(nick1=="" && usersPlayGame[i].stanza==data.stanza){
+                            nick1=usersPlayGame[i].nick;
+                            console.log("SETTO n1->",nick1);
+                        }
+                        else if(nick2=="" && usersPlayGame[i].stanza==data.stanza){
+                            nick2=usersPlayGame[i].nick;
+                            console.log("SETTO n2->",nick2);
+                        }
+
+                        if(nick1!="" && nick2!="") break;
+                    }
+
+                    instanceServerUsers[instanceServerUsers.length]={indice:(data.stanza)-1, nick1:nick1, nick2:nick2};
+                    console.log("TERNA instanceServerUsers: ",instanceServerUsers[(data.stanza)-1]);
+
+                    serverGame[(data.stanza)-1].send({event:"id",indice:(data.stanza)-1});
+                    serverGame[(data.stanza)-1].send({
+                        event:"startUpServer",
+                        nick1:nick1,
+                        nick2:nick2
+                    });
+                }
+
+            }
+           /*  usersPlayGame[countUsers] = data.nick;
             countUsers++;
             
-            if(countUsers == 2){
+            // DA MODIFICARE
+            if(countUsers % 2 == 0){
                 indiceServer = room.indexOf(false);
                 room[indiceServer] = true;
-                ///789///
-                instanceServerUsers[indiceServer]={indice:indiceServer, nick1:usersPlayGame[(usersPlayGame.length)-2], nick2:usersPlayGame[(usersPlayGame.length)-1]};
+                instanceServerUsers[indiceServer]={indice:indiceServer, nick1:usersPlayGame[countUsers-2], nick2:usersPlayGame[countUsers-1]};
                 console.log("TERNA instanceServerUsers: ",instanceServerUsers[indiceServer]);
 
                 serverGame[indiceServer].send({event:"id",indice:indiceServer});
-                //    for(var i=0;i<usersPlayGame.length;i++) console.log("**********************************PERSONE PRESENTI ",usersPlayGame[i]);
                 serverGame[indiceServer].send({
                     event:"startUpServer",
                     nick1:instanceServerUsers[indiceServer].nick1,
                     nick2:instanceServerUsers[indiceServer].nick2
                 });
-                countUsers = 0;
-            }
+                
+            } */
             break;
         }
         case "myPosition":{
@@ -107,8 +230,7 @@ child_process.on("message", (data) =>{
             break;
         }
         case "puckPosition":{
-            console.log("EVENTO puckPosition DA:",data.nick);
-            //console.log("******************************************\n+++++++++++++++++++++++++++++++++++++++++++\nPADRE MY POSITION->",data);
+            //console.log("EVENTO puckPosition DA:",data.nick);
             
             serverGame[indiceServer].send({event:"id",indice:indiceServer});
             serverGame[indiceServer].send(data);
@@ -122,26 +244,20 @@ child_process.on("message", (data) =>{
         }
     }
 
-    //console.log("NICK PRESENTI ALLA FINE:",usersPlayGame);
-
 });
 
 updateStatPlayers = (data) =>{
     finalDataUsers[data.id]={nick1:data.nick1,nick2:data.nick2,winner:data.winner};
-    console.log("OGGETTO------------------>",finalDataUsers[data.id]);
     
-    console.log("Mi collego al DB...")
     var con = mysql.createConnection({
         host: "127.0.0.1",
         user: "root",
         password: "",
         database: "dbgiocohockey"
     });
-    if(con){
-        console.log("Connessione al DB effettuata!");
-    }
+    if(con) {}
     else{
-        console.log("Connessione Fallita!")
+        console.log("Connessione Fallita!\nImpossibile aggiornare i dati dei player dopo la partita!")
     }
 
     con.connect(function(err) {
@@ -153,42 +269,32 @@ updateStatPlayers = (data) =>{
         //Winner
         
         var usrWinner = finalDataUsers[data.id].nick1==finalDataUsers[data.id].winner?finalDataUsers[data.id].nick1:finalDataUsers[data.id].nick2;
-        console.log("USER_WINNER->",usrWinner);
-        //con.query("SELECT Livello,EXP FROM giocatore WHERE Nickname='"+usr+"' AND Password='"+psw+"'", function (err, result, fields) {
                         
         con.query("SELECT Livello,EXP FROM giocatore WHERE Nickname='"+usrWinner+"'", function (err, result, fields) {
         if (err) throw err;
         else{
-            if(result==''){
-                //console.log("STO CAZZO!");            
+            if(result==''){          
             }        
             else{
-                //console.log("\nRESULT:\n",result,"\n\n");
                 liv=result[0].Livello;
                 exp=result[0].EXP;
-
-                //console.log("1-CAZZO DI BUG,",liv,",",exp);
-
-                //console.log("W - DATI DA DB-------PRIMA----->",liv,"_",exp);
 
                 exp+=pointWinner;
                 if(liv < livEXP.length && exp >= livEXP[liv]  ) liv++;
 
                 con.query("UPDATE giocatore SET Livello='"+liv+"', EXP='"+exp+"' WHERE Nickname='"+usrWinner+"'", function (err, result, fields) {
                     if (err) throw err;
-                    else{
-                        //console.log("W - RISULTATO DB DOPO->",result);                   
-                    }
+                    else {}
                 });
                 con.on('error', function(err) {
-                    console.log("W - [mysql error]",err);
+                    console.log("W[UPDATE] - [mysql error]",err);
                 });
 
             }
         }
         });
         con.on('error', function(err) {
-            console.log("W - [mysql error]",err);
+            console.log("W[SELECT] - [mysql error]",err);
         });
             
         //Loser
@@ -198,36 +304,27 @@ updateStatPlayers = (data) =>{
         con.query("SELECT Livello,EXP FROM giocatore WHERE Nickname='"+usrLoser+"'", function (err, result, fields) {
             if (err) throw err;
             else{
-                if(result==''){
-                    //console.log("STO CAZZO!");            
-                }        
+                if(result=='') {}        
                 else{
-                    //console.log("\nRESULT:\n",result,"\n\n");
                     liv=result[0].Livello;
                     exp=result[0].EXP;
-    
-                    //console.log("2-CAZZO DI BUG,",liv,",",exp);
-    
-                    //console.log("L - DATI DA DB-------PRIMA----->",liv,"_",exp);
     
                     exp+=pointLoser;
                     if(liv < livEXP.length && exp >= livEXP[liv]  ) liv++;
     
                     con.query("UPDATE giocatore SET Livello='"+liv+"', EXP='"+exp+"' WHERE Nickname='"+usrLoser+"'", function (err, result, fields) {
                         if (err) throw err;
-                        else{
-                            //console.log("L - RISULTATO DB DOPO->",result);                   
-                        }
+                        else {}
                     });
                     con.on('error', function(err) {
-                        console.log("L - [mysql error]",err);
+                        console.log("L[UPDATE] - [mysql error]",err);
                     });
     
                 }
             }
         });
         con.on('error', function(err) {
-            console.log("L - [mysql error]",err);
+            console.log("L[SELECT] - [mysql error]",err);
         });
 
        /* //TEST
@@ -245,31 +342,25 @@ updateStatPlayers = (data) =>{
         //END TEST */
     });
 
-    // STACCASTACCHIAMO TUTTO
+    // Riavvio instanza data.id serverGame
      
-        // KILL servergame[data.id]
-        console.log("PADRE -  Sto per staccare");
-        //process.kill(serverGame[data.id], 'SIGTERM')
-        ///////////child_process.send({id:data.id,event:"close"})
-        console.log("PADRE - Figlio ",data.id," chiuso!");
-        console.log("PRIMA--------UTENTI USERplayGAME",usersPlayGame);
-        ///789///
-
-        var index;
-        for(var i=0;i<2;i++){
-            i==0 ? index = usersPlayGame.indexOf(finalDataUsers[data.id].nick1)
-                            : index = usersPlayGame.indexOf(finalDataUsers[data.id].nick2);
-            if (index > -1) {
-                usersPlayGame.splice(index, 1);
-            }   
-        }
-        
-        console.log("DOPO.......UTENTI USERplayGAME",usersPlayGame);
+    console.log("PADRE [Partita conclusa] -  Sto per riavviare il figlio serverGame[",data.id,"]!");
+    //process.kill(serverGame[data.id], 'SIGTERM')
+    
+    // Eliminazione terna {serverGame,nick1,nick2}
+    /* var index;
+    for(var i=0;i<2;i++){
+        i==0 ? index = usersPlayGame.indexOf(finalDataUsers[data.id].nick1)
+                        : index = usersPlayGame.indexOf(finalDataUsers[data.id].nick2);
+        if (index > -1) {
+            usersPlayGame.splice(index, 1);
+        }   
+    } */
+    
 }
 
 
 serverGame[0].on("message", (data) =>{
-    console.log("******************\nserverGame[0]-> ",data,"\n**************");
     switch(data.event){
         case "myPosition":{
             child_process.send(data);
@@ -308,7 +399,6 @@ serverGame[0].on("message", (data) =>{
             break;
         }
         case "puckPosition":{
-            //console.log("SUCA PADRE->",data);
             child_process.send(data);
             break;
         }
@@ -320,7 +410,7 @@ serverGame[0].on("message", (data) =>{
             break;
         }
         case "stopServerGame":{
-            console.log("PADRE - RESET FIGLIO EFFETTUATO, pos:",data.id);
+            console.log("PADRE - RIAVVIO FIGLIO EFFETTUATO, pos:",data.id);
             //serverGame[data.id] = fork("serverGame.js");
             room[data.id] = false;
             instanceServerUsers.splice(data.id,1); 
@@ -532,7 +622,6 @@ var serverHTTP = http.createServer((req,res) =>{
                 res.writeHead(200, {'Content-Type': 'text/html'});
                 res.write(data);
                 res.end();
-                //console.log("MARCOMERDA");
             });
         }
         else if(req.url.indexOf('registration.html') != -1){
@@ -1027,22 +1116,18 @@ var serverHTTP = http.createServer((req,res) =>{
     } 
     else if (req.method == "POST") {
         
-        //  chunk.toString(); // convert Buffer to string
-  
         let body = '';
         req.on('data', chunk => {
             body += chunk.toString(); // convert Buffer to string
         });
         req.on('end', () => {
+            // Split dati ricavati da richiesta POST
             var contenitore = [];
             contenitore=body.split("&");
-        //    console.log("DIM.",contenitore.length,",CONT->",contenitore);
             contenitore=contenitore.toString();
             contenitore = contenitore.replace(",", "=")
-        //    console.log("DIM.",contenitore.length,",CONT->",contenitore);
             contenitore=contenitore.split("=");
             
-            console.log("DIM.",contenitore.length,",CONT->",contenitore);
 
             for(var i=0;i<contenitore.length;i=i+2){
                 
@@ -1054,41 +1139,35 @@ var serverHTTP = http.createServer((req,res) =>{
                 }
                 else if(contenitore[i]=="btnMainGame"){
                     console.log("Ritorno sulla pagina MainGame...!->",contenitore);
-                    //console.log("C",contenitore[i]," C+1",contenitore[i+1]);
-                    /* exit(0);
-                    break; */
+                    
                     var con = mysql.createConnection({
                         host: "127.0.0.1",
                         user: "root",
                         password: "",
                         database: "dbgiocohockey"
                     });
-                    if(con){
-                        console.log("Connessione al DB effettuata!");
-                    }
+                    if(con) {}
                     else{
-                        console.log("Connessione Fallita!")
+                        console.log("Connessione Fallita!\nImpossibile effettuare l'accesso per la registrazione!")
                     }
 
                     con.connect(function(err) {
                         if (err) throw err;
                         var usr = contenitore[1];
-                        //console.log("SUCA ->",usr);
                         con.query("SELECT EXP FROM giocatore WHERE Nickname='"+usr+"'", function (err, result, fields) {
-                        
-                        //con.query("SELECT EXP FROM giocatore WHERE Nickname='"+usr+"'", function (err, result, fields) {
                             if (err) throw err;
                             else{
+                                var userRoomPlay = getNickUsers();
+                                    
                                 if(result==''){
 
-                                    //console.log("CAZZO DI BUG! ->",usr);
+                                    res.setHeader('Set-Cookie', ['room1='+room[0]+'','room2='+room[1]+'','room3='+room[2]+'','room4='+room[3]+'','namePlayer='+userRoomPlay+'']);
                                     res.writeHead(200, { "Content-Type": "text/html" });
                                     fs.createReadStream("./mainGame.html", "UTF-8").pipe(res);
                                 }
                                 else{
-                                    //console.log("RIS->",result);
-                                    
-                                    res.setHeader('Set-Cookie', ['ex='+result[0].EXP+'','esp_prev='+result[0].EXP+'']);
+                                    res.setHeader('Set-Cookie', ['ex='+result[0].EXP+'','esp_prev='+result[0].EXP+'','room1='+room[0]+'','room2='+room[1]+'','room3='+room[2]+'','room4='+room[3]+'','namePlayer='+userRoomPlay+'']);
+
                                     res.writeHead(200, { "Content-Type": "text/html" });
                                     fs.createReadStream("./mainGame.html", "UTF-8").pipe(res);     
                                 }
@@ -1097,28 +1176,23 @@ var serverHTTP = http.createServer((req,res) =>{
                         con.on('error', function(err) {
                             console.log("[mysql error]",err);
                           });
-                    })
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
+                    })               
                 
                 }
                 else if(contenitore[i]=="RegUsername"){
                     /* ZONA QUERY SQL REGISTRATION */
                     console.log("Registrazione");
+
+                    var con = mysql.createConnection({
+                        host: "127.0.0.1",
+                        user: "root",
+                        password: "",
+                        database: "dbgiocohockey"
+                    });
+                    if(con) {}
+                    else{
+                        console.log("Connessione Fallita!\nImpossibile effettuare la registrazione!")
+                    }
 
                     con.connect(function(err) {
                         if (err) throw err;
@@ -1134,7 +1208,6 @@ var serverHTTP = http.createServer((req,res) =>{
                                     res.write(data);
                                     res.end();
                                 });
-                                //res.end("Utente esistente!\nCambiare Nickname"); 
                             }
                             else{
                                 console.log("REGISTRAZIONE EFFETTUATA!");
@@ -1151,20 +1224,16 @@ var serverHTTP = http.createServer((req,res) =>{
                 }
                 else if(contenitore[i]=="LoginUsr"){
                     /* ZONA QUERY SQL LOGIN */
-                    console.log("Login--------------------------------");
-
-                    console.log("Mi collego al DB...")
+                    
                     var con = mysql.createConnection({
                         host: "127.0.0.1",
                         user: "root",
                         password: "",
                         database: "dbgiocohockey"
                     });
-                    if(con){
-                        console.log("Connessione al DB effettuata!");
-                    }
+                    if(con) {}
                     else{
-                        console.log("Connessione Fallita!")
+                        console.log("Connessione Fallita!\nImpossibile accedere al database per la Login!")
                     }
 
                     con.connect(function(err) {
@@ -1174,29 +1243,25 @@ var serverHTTP = http.createServer((req,res) =>{
                         con.query("SELECT Nickname,Password,Livello,EXP FROM giocatore WHERE Nickname='"+usr+"' AND Password='"+psw+"'", function (err, result, fields) {
                             if (err) throw err;
                             else{
-                                //console.log("RESULT->",result);
                                 if(result==''){
-                                    //console.log("STO CAZZO!");
                                     fs.readFile(__dirname + '/loginError.html', function (err, data) {
                                         if (err) console.log(err);
                                         res.writeHead(200, {'Content-Type': 'text/html'});
                                         res.write(data);
                                         res.end();
                                     }); 
-                                    //res.end("Utente NON esistente!\nRe-inserire le proprie credenziali");
                                 }
                                 else{
-                                //if(result[0].Nickname==usr && result[0].Password==psw){
                                     console.log("ACCESSO EFFETTUATO DA:",usr);
+                                    
                                     usersConnected[usersConnected.length] = usr;
-                                    console.log("GIOCATORE LOGGATO->",usersConnected[usersConnected.length-1]);
 
-                                    console.log("VALORE RESTITUITO->",room);
-                                    console.log("VALORE RESTITUITO->",room[0]);
-                                    res.setHeader('Set-Cookie', ['nick='+result[0].Nickname+'', 'liv='+result[0].Livello+'', 'ex='+result[0].EXP+'','esp_prev='+result[0].EXP+'','room1='+room[0]+'','room2='+room[1]+'','room3='+room[2]+'','room4='+room[3]+'','namePlayer='+usersPlayGame+'']);
+                                    ///789-CAZZO DI BUG///
+                                    var userRoomPlay = getNickUsers();
+
+                                    res.setHeader('Set-Cookie', ['nick='+result[0].Nickname+'', 'liv='+result[0].Livello+'', 'ex='+result[0].EXP+'','esp_prev='+result[0].EXP+'','room1='+room[0]+'','room2='+room[1]+'','room3='+room[2]+'','room4='+room[3]+'','namePlayer='+userRoomPlay+'']);
                                     res.writeHead(200, { "Content-Type": "text/html" });
                                     fs.createReadStream("./mainGame.html", "UTF-8").pipe(res);
-
                                 }
                                 
                             }
@@ -1209,40 +1274,39 @@ var serverHTTP = http.createServer((req,res) =>{
                 else if(contenitore[i]=="PlayGame"){
                     /* Re-Indirizzamento form StartGame */
                     ///789///
-                    /* console.log("PlayGame --->",contenitore);
+                    console.log("DATI userPlayGame: ",usersPlayGame);
+                    console.log("CONTENUTO RICEVUTO: ",contenitore, "-> ",contenitore[2]);
                     
-                    usersPlayGame[usersPlayGame.length] = contenitore[1];
-                    console.log("GIOCATORE CHE VUOLE GIOCARE->",usersPlayGame[usersPlayGame.length-1]);
-                     */
-                    //exit(0);
-                    //break;
-                    if(room[0]==false || room[1]==false || room[2]==false || room[3]==false){
+                    if( (contenitore[2]=="1" && room[0]==false) ||
+                        (contenitore[2]=="2" && room[1]==false) ||
+                        (contenitore[2]=="3" && room[2]==false) ||
+                        (contenitore[2]=="4" && room[3]==false) ||
+                        (contenitore[2]=="random" && (room[0]==false || room[1]==false || room[2]==false || room[3]==false))){
+                        // Scelta stanza(partita) numero 01
+                        res.setHeader('Set-Cookie', ['selectRoom='+contenitore[2]+'']);
                         res.writeHead(200, { "Content-Type": "text/html" });
                         fs.createReadStream("./startGame.html", "UTF-8").pipe(res);
-                    
                     }
                     else{
-                        // Caso nel quale tutte le stanze sono occupate 
-                        res.setHeader('Set-Cookie', ['room1='+room[0]+'','room2='+room[1]+'','room3='+room[2]+'','room4='+room[3]+'']);
+                        // Caso nel quale tutte le stanze/stanza selezionata sono occupate
+                        ///789///
+                        
+                        var userRoomPlay = getNickUsers();
+                        console.log("RIS FINALE-> ",userRoomPlay);
+                        res.setHeader('Set-Cookie', ['room1='+room[0]+'','room2='+room[1]+'','room3='+room[2]+'','room4='+room[3]+'','namePlayer='+userRoomPlay+'']);
                         res.writeHead(200, { "Content-Type": "text/html" });
                         fs.createReadStream("./mainGame.html", "UTF-8").pipe(res);
                     }                    
                 }
                 else if(contenitore[i]=="ENDGame"){
-                    console.log("CAZZO DI BUG!");
-                    ///789///
-                    /* for(var j=i;j<contenitore.length;j++){
-                        console.log("J=",j," ->",contenitore[j]);
-                        
-                    } */
-
+                    /* Evento fine partita */
                     var ris="perso";
                     var nick=contenitore[2];
                     var liv;
                     var exp;
 
                     for(var j=0;j<finalDataUsers.length;j++){
-                        if(finalDataUsers[j].nick1==nick || finalDataUsers[j].nick2==nick){
+                        if(finalDataUsers[j]!=0 && (finalDataUsers[j].nick1==nick || finalDataUsers[j].nick2==nick)){
                             if(finalDataUsers[j].winner==nick){
                                 ris="vinto";
                                 break;
@@ -1256,22 +1320,17 @@ var serverHTTP = http.createServer((req,res) =>{
                         password: "",
                         database: "dbgiocohockey"
                     });
-                    if(con){
-                        console.log("Connessione al DB effettuata!");
-                    }
+                    if(con) {}
                     else{
-                        console.log("Connessione Fallita!")
+                        console.log("Connessione Fallita!\nImpossibile prelevare i dati del giocatore a fine partita!")
                     }
                     con.query("SELECT Livello,EXP FROM giocatore WHERE Nickname='"+nick+"'", function (err, result, fields) {
                     if (err) throw err;
                     else{
-                        if(result==''){
-                            //console.log("STO CAZZO!");            
-                        }        
+                        if(result=='') {}        
                         else{
                             liv=result[0].Livello;
                             exp=result[0].EXP;
-                            //console.log("1-CAZZO DI BUG,",liv,",",exp); 
                             
                             res.setHeader('Set-Cookie', ['result='+ris+'','liv='+liv+'','ex='+exp+'']);
                             res.writeHead(200, { "Content-Type": "text/html" });
@@ -1287,49 +1346,9 @@ var serverHTTP = http.createServer((req,res) =>{
                 
             }
 
-            console.log("BODY->",body);
+            //console.log("BODY->",body);
         });
-    
-
 
     }
 
 }).listen(port);
-
-//Richiamiamo il figlio facendogli eseguire la parte relativa al
-//gioco
-//const child = spawn ('pwd');
-/* 
-    var exec = require('child_process').exec;
-    exec('node -v', function(error, stdout,stderr) {
-        console.log('stdout: ', + stdout);
-        console.log('stderr: ', + stderr);
-        if(erro != null) {
-            console.log('exec error: ', + error);
-        }
-    });
-
-*/ 
-
-/* 
- */ 
-
-/* 
-var serverWeb = http.createServer(app);
-var socketServerWeb = require('socket.io')(serverWeb); */
-
-
-
-
-
-//    console.log("Usr=",data.usr,"Pass=",data.psw);
-
-
-
-//   obj.socket.emit("myPosition",dataClients[data.nickname]);
-
-
-/* 
-serverWeb.listen(port, () =>{
-    logger.emit("info","Server avviato sulla porta ",port);
-}); */

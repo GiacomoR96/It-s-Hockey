@@ -81,7 +81,8 @@ listener.on("connection", (client) =>{
             
         var oggettoDaSalvare = {
             socket : client,
-            nickname: data.nickname
+            nickname: data.nickname,
+            stanza : data.stanza
         }
     //    console.log("SONO DENTRO LA LOGIN!");
 
@@ -89,7 +90,7 @@ listener.on("connection", (client) =>{
             console.log("GIOCATORE ACCETTATO");
             usersSocket[usersSocket.length] = oggettoDaSalvare;
             
-            process.send({event:"requestStartGame",nick:oggettoDaSalvare.nickname }); // questo caso funziona perchè inviamo una stringa
+            process.send({event:"requestStartGame",nick:oggettoDaSalvare.nickname,stanza:oggettoDaSalvare.stanza}); // questo caso funziona perchè inviamo una stringa
         }
         else{
             console.log("GIOCATORE RIFIUTATO");

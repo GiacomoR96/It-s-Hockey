@@ -13,17 +13,14 @@ var dataClients = [];
 var initialPositionClients = [400,700,400,700];
 var initialPositionBall = [400,450];    //400,565
 var punteggioPartita = [];
-var punteggioFinale = 1;               //7
+var punteggioFinale = 3;               //7
 var posBaseX = 400;
 var posBaseY = 450;
 
 function delayTime(){
     setTimeout(function myTime(){
-        //console.log("CAZZO DI BUG!");
         reset();
         process.send({id:id,event:"stopServerGame"});
-        //console.log(process.pid," -> STO STACCASTACCANDO TUTTO");
-        //process.exit();        
     },5000);
 }
 
@@ -45,7 +42,6 @@ process.on("message", (data) => {
             break;
         }
         case "startUpServer":{
-            console.log("F - startUpServer");
             nickname1 = data.nick1;
             nickname2 = data.nick2;
             
@@ -62,20 +58,17 @@ process.on("message", (data) => {
                 }
 
                 dataClients[i] = dataCurrentClient;
-                 console.log(".....................................");
-            /*    console.log("SERVER_FIGLIO_DataClient:",dataClients[i]); */
+            
                 punteggioPartita[i] = 0;
                 var nick = (i==0)?nickname1:nickname2;
                 var nick_rival = {
                     rival: (i==0)?nickname2:nickname1
                 }
                 var val_i = {idPorta:i};
-                console.log("Valore nick:",nick,"Valore nick_rival:",nick_rival);
                 process.send({id:id,nick:nick,event:"positionBall",data: initialPositionBall});
                 process.send({id:id,nick:nick,event:"users_game",rival:nick_rival});
                 process.send({id:id,nick:nick,event:"setIDPorta", idPorta:val_i});
                 process.send({id:id,nick:nick,event:"start_game", start:true});
-                console.log("F - fine");
             }
             break;
         }
@@ -113,18 +106,11 @@ process.on("message", (data) => {
         case "puckPosition": {
             // FARE QUI LA SPECULARITA'
             var name = (data.nick==nickname1)?nickname2:nickname1;
-            //console.log("MANDO 111!");
-
-            //console.log("PUCK RICEVUTO: ",data[0],",",data[1]);
-
+            
             var position = {
                 posX : data.data[0],
                 posY : data.data[1]
             };
-
-            /* position.posX = data[0];
-            position.posY = data[1]; */
-            //console.log("VALORE PUCK: ",position);
            
             var risY;
             var risX;
@@ -139,19 +125,76 @@ process.on("message", (data) => {
             tmp.posY=risY;
             tmp.posX=risX;
 
-            //console.log("MANDO PUCK: ",tmp.posX,"---",tmp.posY);
-
-           /*  if(data.nick==nickname1)    process.send({id:id,nick:nickname2,event:"moveRivalPosition",data:});
-            else                        process.send({id:id,nick:nickname1,event:"moveRivalPosition",data:[tmp.posX,tmp.posY]});
-  */
             process.send({id:id,nick:name,event:"puckPosition",data:[tmp.posX,tmp.posY]});
 
+            break;
+        }
+        case "moveMyPosition": {
+
+            var i = (data.nick==nickname1)?0:1;
+            dataClients[i].posX = data.data.x;
+            dataClients[i].posY = data.data.y;
+
+            var risY;
+            var risX;
+
+            var diffY = posBaseY-dataClients[i].posY;
+            var diffX = posBaseX-dataClients[i].posX;
+
+            risY=posBaseY+diffY;
+            risX=posBaseX+diffX;
+
+            var tmp = dataClients[i];
+            tmp.posY=risY;
+            tmp.posX=risX;
+
+            if(data.nick==nickname1)    process.send({id:id,nick:nickname2,event:"moveRivalPosition",data:[tmp.posX,tmp.posY]});
+            else                        process.send({id:id,nick:nickname1,event:"moveRivalPosition",data:[tmp.posX,tmp.posY]});
+
+            break;
+        }
+        case "goalSuffered": {
+
+            var i = (data.nick==nickname1)?1:0;
+            punteggioPartita[i]+=1;
+            
+            if(punteggioPartita[0] >= punteggioFinale || punteggioPartita[1] >= punteggioFinale){
+                process.send({id:id,nick:nickname1,event:"finishGame"});
+                process.send({id:id,nick:nickname2,event:"finishGame"});
+                
+                process.send({id:id,event:"updateDataDB",nick1:nickname1,nick2:nickname2,winner:punteggioPartita[1]>punteggioPartita[0]?nickname1:nickname2});
+                
+                delayTime();
+            }
+
+            // QUELLO CHE HA SUBITO (VANTAGGIO DI POSIZIONE)
+            
+            process.send({id:id,nick:nickname1,event:"refreshScoreGame",data: [nickname1, punteggioPartita[0]]});
+            process.send({id:id,nick:nickname1,event:"refreshScoreGame",data: [nickname2, punteggioPartita[1]]});
+
+            var name = (data.nick==nickname1)?nickname1:nickname2;
+            process.send({id:id,nick:name,event:"setPositionPuck",data:[400,650]});
+            
+            
+            // QUELLO CHE HA SEGNATO
+            process.send({id:id,nick:nickname2,event:"refreshScoreGame",data: [nickname1, punteggioPartita[0]]});
+            process.send({id:id,nick:nickname2,event:"refreshScoreGame",data: [nickname2, punteggioPartita[1]]});
+            
+            var name = (data.nick==nickname1)?nickname2:nickname1;
+            process.send({id:id,nick:name,event:"setPositionPuck",data:[400,250]});
+
+            break;
+        }
+        
+    }
+
+});
 
 
+/*
+    EVENT - puckPosition
 
-
-
-            //console.log("PUCK_POSITION!!!111|!!1!1!-///0",data,"\n\n");
+    //console.log("PUCK_POSITION!!!111|!!1!1!-///0",data,"\n\n");
             //puck = data.data.puck;
             /* console.log("SONO ",data.nick," con PUCK!->",
             data.data.angle,
@@ -194,78 +237,5 @@ process.on("message", (data) => {
                     data.data.touching,
                     data.data.velocity,
                     data.data.wasTouching]});
-            } */
-            break;
-        }
-        case "moveMyPosition": {
-
-            var i = (data.nick==nickname1)?0:1;
-            dataClients[i].posX = data.data.x;
-            dataClients[i].posY = data.data.y;
-
-            var risY;
-            var risX;
-
-            var diffY = posBaseY-dataClients[i].posY;
-            var diffX = posBaseX-dataClients[i].posX;
-
-            risY=posBaseY+diffY;
-            risX=posBaseX+diffX;
-
-            var tmp = dataClients[i];
-            tmp.posY=risY;
-            tmp.posX=risX;
-
-            if(data.nick==nickname1)    process.send({id:id,nick:nickname2,event:"moveRivalPosition",data:[tmp.posX,tmp.posY]});
-            else                        process.send({id:id,nick:nickname1,event:"moveRivalPosition",data:[tmp.posX,tmp.posY]});
-
-            break;
-        }
-        case "goalSuffered": {
-
-            var i = (data.nick==nickname1)?1:0;
-            punteggioPartita[i]+=1;
-            
-            if(punteggioPartita[0] >= punteggioFinale || punteggioPartita[1] >= punteggioFinale){
-                process.send({id:id,nick:nickname1,event:"finishGame"});
-                process.send({id:id,nick:nickname2,event:"finishGame"});
-                //  punteggioPartita[1] == nickname1
-                //  punteggioPartita[0] == nickname2
-                //      console.log("NICKNAME 1-",nickname1,punteggioPartita[1]);
-                //      console.log("NICKNAME 2-",nickname2,punteggioPartita[0]);
-                process.send({id:id,event:"updateDataDB",nick1:nickname1,nick2:nickname2,winner:punteggioPartita[1]>punteggioPartita[0]?nickname1:nickname2});
-                
-                
-                
-                console.log("F - CAZZO DI BUG!");
-                delayTime();
-            }
-
-            // QUELLO CHE HA SUBITO (VANTAGGIO DI POSIZIONE)
-            
-            process.send({id:id,nick:nickname1,event:"refreshScoreGame",data: [nickname1, punteggioPartita[0]]});
-            process.send({id:id,nick:nickname1,event:"refreshScoreGame",data: [nickname2, punteggioPartita[1]]});
-
-            var name = (data.nick==nickname1)?nickname1:nickname2;
-            //console.log("MANDO 111!");
-            process.send({id:id,nick:name,event:"setPositionPuck",data:[400,650]});
-            
-
-            
-            // QUELLO CHE HA SEGNATO
-            process.send({id:id,nick:nickname2,event:"refreshScoreGame",data: [nickname1, punteggioPartita[0]]});
-            process.send({id:id,nick:nickname2,event:"refreshScoreGame",data: [nickname2, punteggioPartita[1]]});
-            
-            var name = (data.nick==nickname1)?nickname2:nickname1;
-            process.send({id:id,nick:name,event:"setPositionPuck",data:[400,250]});
-
-            console.log("\t\tPUNTEGGIO: ",punteggioPartita);
-            break;
-        }
-        
-
-    }
-
-
-
-});
+            } 
+*/
