@@ -476,12 +476,10 @@ serverGame[0].on("message", (data) =>{
             //console.log("DOPO LA MODIFICA->",countUsers," - ",usersPlayGame);
         }
     }
-
 });
 
 
 serverGame[1].on("message", (data) =>{
-    
     switch(data.event){
         case "myPosition":{
             child_process.send(data);
@@ -545,11 +543,9 @@ serverGame[1].on("message", (data) =>{
             //console.log("DOPO LA MODIFICA->",countUsers," - ",usersPlayGame);
         }
     }
-
 });
 
 serverGame[2].on("message", (data) =>{
-    
     switch(data.event){
         case "myPosition":{
             child_process.send(data);
@@ -613,12 +609,10 @@ serverGame[2].on("message", (data) =>{
             //console.log("DOPO LA MODIFICA->",countUsers," - ",usersPlayGame);
         }
     }
-
 });
 
 
 serverGame[3].on("message", (data) =>{
-    
     switch(data.event){
         case "myPosition":{
             child_process.send(data);
@@ -682,7 +676,6 @@ serverGame[3].on("message", (data) =>{
             //console.log("DOPO LA MODIFICA->",countUsers," - ",usersPlayGame);
         }
     }
-
 });
 /* COMUNICAZIONE DA PADRE A FIGLIO */
 /*

@@ -7,7 +7,7 @@ var port = 8081;
 var logs = require("./log");
 var http = require('http');
 var usersSocket = [];
-var LIMIT = 8;
+//var LIMIT = 8;
 
                                                                                 /* 
                                                                                 const stringifyObject = require('stringify-object'); */
@@ -86,16 +86,16 @@ listener.on("connection", (client) =>{
         }
     //    console.log("SONO DENTRO LA LOGIN!");
 
-        if(usersSocket.length < LIMIT){
+        //if(usersSocket.length < LIMIT){
             console.log("GIOCATORE ACCETTATO");
             usersSocket[usersSocket.length] = oggettoDaSalvare;
             
-            process.send({event:"requestStartGame",nick:oggettoDaSalvare.nickname,stanza:oggettoDaSalvare.stanza}); // questo caso funziona perchè inviamo una stringa
-        }
-        else{
+            process.send({event:"requestStartGame",nick:oggettoDaSalvare.nickname,stanza:oggettoDaSalvare.stanza});
+        //}
+        /* else{
             console.log("GIOCATORE RIFIUTATO");
             oggettoDaSalvare.socket.emit("gameRefused",{});
-        }
+        } */
                                                                                             //    process.send( JSON.stringify({socket: oggettoDaSalvare.socket, nickname: oggettoDaSalvare.nickname}) );
                                                                                             //    console.log(stringifyObject(client));
                                                                                                 /*    var prova = JSON.stringify(client);

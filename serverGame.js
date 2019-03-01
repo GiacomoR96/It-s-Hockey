@@ -21,7 +21,7 @@ function delayTime(){
     setTimeout(function myTime(){
         reset();
         process.send({id:id,event:"stopServerGame"});
-    },10000);
+    },8000);
 }
 
 reset = () =>{
@@ -65,11 +65,17 @@ process.on("message", (data) => {
                     rival: (i==0)?nickname2:nickname1
                 }
                 var val_i = {idPorta:i};
+                
                 process.send({id:id,nick:nick,event:"positionBall",data: initialPositionBall});
                 process.send({id:id,nick:nick,event:"users_game",rival:nick_rival});
                 process.send({id:id,nick:nick,event:"setIDPorta", idPorta:val_i});
                 process.send({id:id,nick:nick,event:"start_game", start:true});
             }
+
+            process.send({id:id,nick:nickname1,event:"myPosition",data: dataClients[0]});
+            process.send({id:id,nick:nickname2,event:"myPosition",data: dataClients[1]});
+            
+
             break;
         }
         case "myPosition":{
@@ -99,10 +105,7 @@ process.on("message", (data) => {
             }
             break;
         }
-        case "puckInitialize": {
-            
-            break;
-        }
+        
         case "puckPosition": {
             // FARE QUI LA SPECULARITA'
             var name = (data.nick==nickname1)?nickname2:nickname1;
@@ -157,10 +160,21 @@ process.on("message", (data) => {
 
             var i = (data.nick==nickname1)?1:0;
             punteggioPartita[i]+=1;
+
+            // QUELLO CHE HA SUBITO (VANTAGGIO DI POSIZIONE)
+            
+            process.send({id:id,nick:nickname1,event:"refreshScoreGame",data: [nickname1, punteggioPartita[0]]});
+            process.send({id:id,nick:nickname1,event:"refreshScoreGame",data: [nickname2, punteggioPartita[1]]});
+
+            // QUELLO CHE HA SEGNATO
+            process.send({id:id,nick:nickname2,event:"refreshScoreGame",data: [nickname1, punteggioPartita[0]]});
+            process.send({id:id,nick:nickname2,event:"refreshScoreGame",data: [nickname2, punteggioPartita[1]]});
             
             if(punteggioPartita[0] >= punteggioFinale || punteggioPartita[1] >= punteggioFinale){
                 process.send({id:id,nick:nickname1,event:"finishGame"});
                 process.send({id:id,nick:nickname2,event:"finishGame"});
+                //process.send({id:id,nick:nickname1,event:"finishGame"});
+                //process.send({id:id,nick:nickname2,event:"finishGame"});
                 
                 //delayTime();
 
@@ -168,23 +182,14 @@ process.on("message", (data) => {
                 
                 delayTime();
             }
-
-            // QUELLO CHE HA SUBITO (VANTAGGIO DI POSIZIONE)
-            
-            process.send({id:id,nick:nickname1,event:"refreshScoreGame",data: [nickname1, punteggioPartita[0]]});
-            process.send({id:id,nick:nickname1,event:"refreshScoreGame",data: [nickname2, punteggioPartita[1]]});
-
-            var name = (data.nick==nickname1)?nickname1:nickname2;
-            process.send({id:id,nick:name,event:"setPositionPuck",data:[400,650]});
-            
-            
-            // QUELLO CHE HA SEGNATO
-            process.send({id:id,nick:nickname2,event:"refreshScoreGame",data: [nickname1, punteggioPartita[0]]});
-            process.send({id:id,nick:nickname2,event:"refreshScoreGame",data: [nickname2, punteggioPartita[1]]});
-            
-            var name = (data.nick==nickname1)?nickname2:nickname1;
-            process.send({id:id,nick:name,event:"setPositionPuck",data:[400,250]});
-
+            else{
+                var name="";
+                name = (data.nick==nickname1)?nickname1:nickname2;
+                process.send({id:id,nick:name,event:"setPositionPuck",data:[400,650]});
+                
+                name = (data.nick==nickname1)?nickname2:nickname1;
+                process.send({id:id,nick:name,event:"setPositionPuck",data:[400,250]});    
+            }
             break;
         }
         
