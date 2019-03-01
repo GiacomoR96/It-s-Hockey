@@ -151,13 +151,64 @@ child_process.on("message", (data) =>{
 
             usersPlayGame[usersPlayGame.length]=userData;
             console.log("OGGETTO SALVATO= ",usersPlayGame);
-            if(data.stanza>=1 && data.stanza<=4){
-                countUsers[(data.stanza)-1]++;
 
+            var nick1="",nick2="";
+
+            if(data.stanza=="random"){
+                
+                var stanza=-1;
+                
+                for(var i=0;i<room.length;i++){
+                    if(room[i]==false && countUsers[i]==1){
+                        stanza=i;
+                        break;
+                    }
+                }
+                if(stanza==-1)  stanza=room.indexOf(false);
+
+                //nick1=userData.nick;
+                countUsers[stanza]++;
+                userData.stanza=stanza+1;
+                usersPlayGame[usersPlayGame.length-1]=userData;
+
+                console.log("STANZA ASSEGNATA RANDOM->",countUsers);
+                if(countUsers[stanza]==2){
+                    for(var j=0;j<usersPlayGame.length;j++){
+                        //if(usersPlayGame[j].stanza == (stanza+1))   nick2=usersPlayGame[j].nick;
+                        
+                        if(nick1=="" && usersPlayGame[j].stanza==(stanza+1)){
+                            nick1=usersPlayGame[j].nick;
+                            console.log("SETTO n1->",nick1);
+                        }
+                        else if(nick2=="" && usersPlayGame[j].stanza==(stanza+1)){
+                            nick2=usersPlayGame[j].nick;
+                            console.log("SETTO n2->",nick2);
+                        }
+
+                        if(nick1!="" && nick2!="") break;
+                    }
+                    console.log("PRIMA terna.>",usersPlayGame);
+                    instanceServerUsers[instanceServerUsers.length]={indice:stanza, nick1:nick1, nick2:nick2};
+                    console.log("TERNA instanceServerUsers: ",instanceServerUsers[stanza]);
+
+                    serverGame[stanza].send({event:"id",indice:stanza});
+                    serverGame[stanza].send({
+                        event:"startUpServer",
+                        nick1:nick1,
+                        nick2:nick2
+                    });
+
+                }
+            }
+            else if(data.stanza>=1 && data.stanza<=4){
+                countUsers[(data.stanza)-1]++;
+                console.log("STANZA ASSEGNATA NUMERO->",countUsers);
+                
+                
                 if(countUsers[(data.stanza)-1]==2){
                     room[(data.stanza)-1]=true;
 
-                    var nick1="",nick2="";
+                    //nick1="",nick2="";
                     for(var i=0;i<usersPlayGame.length;i++){
                         console.log("OGGETTO CORRENTE= ",usersPlayGame[i],", di stanza->",usersPlayGame[i].stanza);
             
@@ -183,6 +234,7 @@ child_process.on("message", (data) =>{
                         nick2:nick2
                     });
                 }
+
 
             }
            /*  usersPlayGame[countUsers] = data.nick;
@@ -344,7 +396,7 @@ updateStatPlayers = (data) =>{
 
     // Riavvio instanza data.id serverGame
      
-    console.log("PADRE [Partita conclusa] -  Sto per riavviare il figlio serverGame[",data.id,"]!");
+    console.log("PADRE [Partita conclusa] -  Salvataggio dati di serverGame[",data.id,"] effettuato!");
     //process.kill(serverGame[data.id], 'SIGTERM')
     
     // Eliminazione terna {serverGame,nick1,nick2}
@@ -410,10 +462,18 @@ serverGame[0].on("message", (data) =>{
             break;
         }
         case "stopServerGame":{
-            console.log("PADRE - RIAVVIO FIGLIO EFFETTUATO, pos:",data.id);
+            console.log("PADRE - RESET FIGLIO EFFETTUATO, pos:",data.id);
             //serverGame[data.id] = fork("serverGame.js");
+            countUsers[data.id]=0;
+            for(var i=0;i<usersPlayGame.length;){
+                //console.log("Ciclo: ", i);
+                if(usersPlayGame[i].stanza==(data.id)+1)   usersPlayGame.splice(i,1);
+                else i++;
+            }
             room[data.id] = false;
-            instanceServerUsers.splice(data.id,1); 
+            instanceServerUsers.splice(data.id,1);
+            ///789 CAZZO DI BUG///
+            //console.log("DOPO LA MODIFICA->",countUsers," - ",usersPlayGame);
         }
     }
 
@@ -473,8 +533,16 @@ serverGame[1].on("message", (data) =>{
         case "stopServerGame":{
             console.log("PADRE - RESET FIGLIO EFFETTUATO, pos:",data.id);
             //serverGame[data.id] = fork("serverGame.js");
+            countUsers[data.id]=0;
+            for(var i=0;i<usersPlayGame.length;){
+                //console.log("Ciclo: ", i);
+                if(usersPlayGame[i].stanza==(data.id)+1)   usersPlayGame.splice(i,1);
+                else i++;
+            }
             room[data.id] = false;
-            instanceServerUsers.splice(data.id,1); 
+            instanceServerUsers.splice(data.id,1);
+            ///789 CAZZO DI BUG///
+            //console.log("DOPO LA MODIFICA->",countUsers," - ",usersPlayGame);
         }
     }
 
@@ -533,8 +601,16 @@ serverGame[2].on("message", (data) =>{
         case "stopServerGame":{
             console.log("PADRE - RESET FIGLIO EFFETTUATO, pos:",data.id);
             //serverGame[data.id] = fork("serverGame.js");
+            countUsers[data.id]=0;
+            for(var i=0;i<usersPlayGame.length;){
+                //console.log("Ciclo: ", i);
+                if(usersPlayGame[i].stanza==(data.id)+1)   usersPlayGame.splice(i,1);
+                else i++;
+            }
             room[data.id] = false;
-            instanceServerUsers.splice(data.id,1); 
+            instanceServerUsers.splice(data.id,1);
+            ///789 CAZZO DI BUG///
+            //console.log("DOPO LA MODIFICA->",countUsers," - ",usersPlayGame);
         }
     }
 
@@ -594,8 +670,16 @@ serverGame[3].on("message", (data) =>{
         case "stopServerGame":{
             console.log("PADRE - RESET FIGLIO EFFETTUATO, pos:",data.id);
             //serverGame[data.id] = fork("serverGame.js");
+            countUsers[data.id]=0;
+            for(var i=0;i<usersPlayGame.length;){
+                //console.log("Ciclo: ", i);
+                if(usersPlayGame[i].stanza==(data.id)+1)   usersPlayGame.splice(i,1);
+                else i++;
+            }
             room[data.id] = false;
-            instanceServerUsers.splice(data.id,1); 
+            instanceServerUsers.splice(data.id,1);
+            ///789 CAZZO DI BUG///
+            //console.log("DOPO LA MODIFICA->",countUsers," - ",usersPlayGame);
         }
     }
 

@@ -21,7 +21,7 @@ function delayTime(){
     setTimeout(function myTime(){
         reset();
         process.send({id:id,event:"stopServerGame"});
-    },5000);
+    },10000);
 }
 
 reset = () =>{
@@ -162,6 +162,8 @@ process.on("message", (data) => {
                 process.send({id:id,nick:nickname1,event:"finishGame"});
                 process.send({id:id,nick:nickname2,event:"finishGame"});
                 
+                //delayTime();
+
                 process.send({id:id,event:"updateDataDB",nick1:nickname1,nick2:nickname2,winner:punteggioPartita[1]>punteggioPartita[0]?nickname1:nickname2});
                 
                 delayTime();
