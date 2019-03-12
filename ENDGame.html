@@ -1,8 +1,6 @@
 <!DOCTYPE HTML>
 <html>
 	<head>
-	
-	
 
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -39,8 +37,7 @@
             </div>
 		</nav>
 		  
-        <div style="left:50%;margin-left:-400px;top:50%;margin-top:-450px; color:yellow">AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA</div>
-        <header id="fh5co-header" class="fh5co-cover" role="banner" style="background-image:url(images/img_bg_2.jpg); height:100%">
+        <!-- <div style="left:50%;margin-left:-400px;top:50%;margin-top:-450px; color:yellow">AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA</div> --><header id="fh5co-header" class="fh5co-cover" role="banner" style="background-image:url(images/img_bg_2.jpg); height:100%">
             <div class="overlay"></div>
             <div class="container display-space">
                 <div class="row">
@@ -96,45 +93,38 @@
 	<script src="js/main.js"></script>
 
 	<script>
-			// Retrieve
-			var _ex_prev; // = sessionStorage.getItem("nickname");
+			var _ex_prev;
 			var _liv;
 			var _exp;
 			var _result;
 			var _nick;
-			//    alert("VALORE SALVATO: "+x);
-	
+			
 			var elementsCookie = document.cookie.split('; ');
 			console.log("VAL_COOKIE->",elementsCookie);
 			
 			for(var i=0;i<elementsCookie.length;i++){
 			//    console.log("CONFRONTO->",elementsCookie[i],"--- substr->",elementsCookie[i].substr(0,4));
 				if(elementsCookie[i].substr(0,8)=="esp_prev"){
-				//    console.log("CI PASSO!1");
 					var tmp = elementsCookie[i].split('=');
 					var tmp = tmp[1].split(';');
 					_ex_prev = tmp[0];
 				}
 				if(elementsCookie[i].substr(0,6)=="result"){
-				//    console.log("CI PASSO!1");
 					var tmp = elementsCookie[i].split('=');
 					var tmp = tmp[1].split(';');
 					_result = tmp[0];
 				}
 				else if(elementsCookie[i].substr(0,3)=="liv"){
-				//    console.log("CI PASSO!2");
 					var tmp = elementsCookie[i].split('=');
 					var tmp = tmp[1].split(';');
 					_liv = tmp[0];
 				}
 				else if(elementsCookie[i].substr(0,2)=="ex"){
-				//    console.log("CI PASSO!3");
 					var tmp = elementsCookie[i].split('=');
 					var tmp = tmp[1].split(';');
 					_exp = tmp[0];
 				}
 				else if(elementsCookie[i].substr(0,4)=="nick"){
-				//    console.log("CI PASSO!3");
 					var tmp = elementsCookie[i].split('=');
 					var tmp = tmp[1].split(';');
 					_nick = tmp[0];
@@ -142,11 +132,10 @@
 	
 			}
 	
-			console.log("SONO EX_PREV=",_ex_prev);
+			/* console.log("SONO EX_PREV=",_ex_prev);
 			console.log("SONO LIV=",_liv);
 			console.log("SONO EX=",_exp);
-			console.log("SONO EX=",_result);
-
+			console.log("SONO EX=",_result); */
 			_exp-=_ex_prev;
 			
 			document.getElementById("result").innerHTML = _result;
@@ -154,7 +143,6 @@
 			document.getElementById("esp_prev").innerHTML = _ex_prev;
 			document.getElementById("ex").innerHTML = _exp;
 	
-		//	document.cookie = "nick="+_nick+"; esp_prev="+_exp+" path=/";
 			document.getElementById("1").setAttribute("value",_nick);
 		</script>
 

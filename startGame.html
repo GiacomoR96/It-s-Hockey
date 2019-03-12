@@ -4,35 +4,11 @@
 	<script src="/phaser.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
 	
-	<script>
-		var tmp = ((document.documentElement.clientWidth-800)/2);
-		/* function myCampo(){
-				console.log("1-------------------");
-				var campoWidth = this.offsetWidth;
-				var campoHeight = this.offsetHeight;
-				console.log("DIM_CAMPO: ",campoWidth,"-",campoHeight);
-
-				var vpWidth = document.documentElement.clientWidth;
-				var vpHeight = document.documentElement.clientHeight;
-				console.log("VP_CAMPO: ",vpWidth,"-",vpHeight);
-
-				this.style.position = 'absolute';
-				console.log("2-------------------");
-				this.style.left =	(vpWidth - campoWidth)/2 + 'px';
-				this.style.top =	(vpHeight - campoHeight)/2 +
-									window.pageYOffset + 'px';
-				console.log("3-------------------");
-
-				body.appendChild(campo);
-				console.log("4-------------------");
-			} */
-	</script>
-
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<title>It's Hockey!</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-
+ 
 	<link href='https://fonts.googleapis.com/css?family=Work+Sans:400,300,600,400italic,700' rel='stylesheet' type='text/css'>
 	<link href="https://fonts.googleapis.com/css?family=Playfair+Display:400,700" rel="stylesheet">
 	
@@ -52,8 +28,6 @@
 			
 	<div class="fh5co-loader"></div>
     
-    
-
 	<div id="page">
 		<nav class="fh5co-nav" role="navigation">
 			<div id="campo">
@@ -65,14 +39,12 @@
                     <div class="logo center-menu text-center" style="padding-bottom: 30px">
                         <div id="fh5co-logo"><a href="#">It's Hockey!</a></div>
                     </div>
-                    
                 </div>
                 
             </div>
-		</nav>
-		
+		</nav>	
 		  
-        <div id="" style="left:50%;margin-left:-400px;top:50%;margin-top:-450px; color:yellow">AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA</div>
+<!--    <div id="" style="left:50%;margin-left:-400px;top:50%;margin-top:-450px; color:yellow">AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA</div> -->
         <header id="fh5co-header" class="fh5co-cover" role="banner" style="background-image:url(images/img_bg_2.jpg); height:100%">
             <div class="overlay"></div>
             <div class="container">
@@ -90,7 +62,6 @@
     
 	</div>
 
-	
 	<!-- jQuery -->
 	<script src="js/jquery.min.js"></script>
 	<!-- jQuery Easing -->
@@ -101,69 +72,6 @@
 	<script src="js/jquery.waypoints.min.js"></script>
 	<!-- Main -->
 	<script src="js/main.js"></script>
-
-	<script>
-		/* 
-			if(typeof(EventSource) !== "undefined" ) {
-				
-				console.log("HO RICEVUTO QUALCOSA DAL SERVER ",typeof(EventSource));
-
-				var campo = document.getElementById("game");//.addEventListener("pageshow", myFunction);;
-			var body = document.getElementsByTagName("body");
-			
-				console.log("1-------------------");
-				var campoWidth = this.offsetWidth;
-				var campoHeight = this.offsetHeight;
-				console.log("DIM_CAMPO: ",campoWidth,"-",campoHeight);
-
-				var vpWidth = document.documentElement.clientWidth;
-				var vpHeight = document.documentElement.clientHeight;
-				console.log("VP_CAMPO: ",vpWidth,"-",((document.documentElement.clientWidth-800)/2));
-
-				campo.style.position = 'absolute';
-				console.log("2-------------------");
-				campo.style.left =	(vpWidth - campoWidth)/2 + 'px';
-				campo.style.top =	(vpHeight - campoHeight)/2 +
-									window.pageYOffset + 'px';
-				console.log("3-------------------");
-
-				body.appendChild(campo);
-				console.log("4-------------------");
-
-			}
-			else{
-				document.getElementById("result").innerHTML = "Sorry, your browser does not support server-sent events...";
-			}
- */
-		/* if($('#game')){
-			console.log("ATTIVO");
-			//$('#game').css('display','center');
-			
-			var campo = document.getElementById("game");//.addEventListener("pageshow", myFunction);;
-			var body = document.getElementsByTagName("body");
-			function myFunction(){
-				console.log("1-------------------");
-				var campoWidth = this.offsetWidth;
-				var campoHeight = this.offsetHeight;
-				console.log("DIM_CAMPO: ",campoWidth,"-",campoHeight);
-
-				var vpWidth = document.documentElement.clientWidth;
-				var vpHeight = document.documentElement.clientHeight;
-				console.log("VP_CAMPO: ",vpWidth,"-",vpHeight);
-
-				this.style.position = 'absolute';
-				console.log("2-------------------");
-				this.style.left =	(vpWidth - campoWidth)/2 + 'px';
-				this.style.top =	(vpHeight - campoHeight)/2 +
-									window.pageYOffset + 'px';
-				console.log("3-------------------");
-
-				body.appendChild(campo);
-				console.log("4-------------------");
-			} 
-		} */
-	</script>
-	
 
 	</body>
 </html>

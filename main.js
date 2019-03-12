@@ -7,7 +7,7 @@ var http = require('http');
 var fs = require('fs');
 var path = require('path');
 
-// inizializzazione socket per l'instaurazione della connessione attraverso le socket
+// Inizializzazione socket per l'instaurazione della connessione 
 const {fork} = require ('child_process');  
 var child_process = fork('createSocket.js');
 
@@ -21,47 +21,23 @@ var finalDataUsers = [0,0,0,0];
 var livEXP = [10,25,45,75,115,165,230,310,405,530];
 var pointWinner=7;
 var pointLoser=3;
+
+// Differenza exp per ogni livello
 // 10 15 20 30 40 50 65 80 95 125
 
 
 for(var i=0;i<4;i++){
-    serverGame[i] = fork("serverGame.js");      // serverGame[serverGame.length]
+    serverGame[i] = fork("serverGame.js");      
 }
 
 var usersConnected = [];
 var usersPlayGame = [];
 var countUsers = [0,0,0,0];
 var maxNumPlayers = 8;
-//var numUser = 0;
 var instanceServerUsers = [];
 
 /* STANZA LIBERA = false, OCCUPATA =  true */
 var room = [false, false, false, false];
-
-/*
-
-console.log("requestStartGame RICEVUTO-> ",data," __>",data.stanza);
-            
-            usersPlayGame[countUsers] = data.nick;
-            countUsers++;
-            
-            // DA MODIFICARE
-            if(countUsers % 2 == 0){
-                indiceServer = room.indexOf(false);
-                room[indiceServer] = true;
-                instanceServerUsers[indiceServer]={indice:indiceServer, nick1:usersPlayGame[countUsers-2], nick2:usersPlayGame[countUsers-1]};
-                console.log("TERNA instanceServerUsers: ",instanceServerUsers[indiceServer]);
-
-                serverGame[indiceServer].send({event:"id",indice:indiceServer});
-                serverGame[indiceServer].send({
-                    event:"startUpServer",
-                    nick1:instanceServerUsers[indiceServer].nick1,
-                    nick2:instanceServerUsers[indiceServer].nick2
-                });
-                
-            }
-
-*/
 
 getNickUsers = () =>{
     var nick1="",nick2="";
@@ -122,13 +98,9 @@ getNickUsers = () =>{
 /* COMUNICAZIONE DA FIGLIO_SOCKET A PADRE */
 child_process.on("message", (data) =>{
 
-    /*  Gestire il tutto con un array di oggetti
-        ove ogni indice del server corrispondono 2 nick
-        e appena arriva un messaggio, se il nick del tizio
-        che ha mandato il messaggio è gia' dentro un oggetto
-        di questo array allora l'indiceServer corrispondera'
-        al valore dell'indice dell'oggetto dove e' stato
-        trovato il record, altrimenti aspetta un nuovo avversario
+    /*  
+        La coppia dei giocatori e' gestita con un array di oggetti
+        ove ad ogni indice del serverGame corrispondono 2 nick.
     */ 
    
     var indiceServer;
@@ -166,7 +138,6 @@ child_process.on("message", (data) =>{
                 }
                 if(stanza==-1)  stanza=room.indexOf(false);
 
-                //nick1=userData.nick;
                 countUsers[stanza]++;
                 userData.stanza=stanza+1;
                 usersPlayGame[usersPlayGame.length-1]=userData;
@@ -174,20 +145,17 @@ child_process.on("message", (data) =>{
                 console.log("STANZA ASSEGNATA RANDOM->",countUsers);
                 if(countUsers[stanza]==2){
                     for(var j=0;j<usersPlayGame.length;j++){
-                        //if(usersPlayGame[j].stanza == (stanza+1))   nick2=usersPlayGame[j].nick;
                         
                         if(nick1=="" && usersPlayGame[j].stanza==(stanza+1)){
                             nick1=usersPlayGame[j].nick;
-                            console.log("SETTO n1->",nick1);
                         }
                         else if(nick2=="" && usersPlayGame[j].stanza==(stanza+1)){
                             nick2=usersPlayGame[j].nick;
-                            console.log("SETTO n2->",nick2);
                         }
 
                         if(nick1!="" && nick2!="") break;
                     }
-                    console.log("PRIMA terna.>",usersPlayGame);
+
                     instanceServerUsers[instanceServerUsers.length]={indice:stanza, nick1:nick1, nick2:nick2};
                     console.log("TERNA instanceServerUsers: ",instanceServerUsers[stanza]);
 
@@ -202,23 +170,18 @@ child_process.on("message", (data) =>{
             }
             else if(data.stanza>=1 && data.stanza<=4){
                 countUsers[(data.stanza)-1]++;
-                console.log("STANZA ASSEGNATA NUMERO->",countUsers);
-                
-                
+                console.log("STANZA RICHIESTA NUMERO->",countUsers);
+                         
                 if(countUsers[(data.stanza)-1]==2){
                     room[(data.stanza)-1]=true;
 
-                    //nick1="",nick2="";
                     for(var i=0;i<usersPlayGame.length;i++){
-                        console.log("OGGETTO CORRENTE= ",usersPlayGame[i],", di stanza->",usersPlayGame[i].stanza);
             
                         if(nick1=="" && usersPlayGame[i].stanza==data.stanza){
                             nick1=usersPlayGame[i].nick;
-                            console.log("SETTO n1->",nick1);
                         }
                         else if(nick2=="" && usersPlayGame[i].stanza==data.stanza){
                             nick2=usersPlayGame[i].nick;
-                            console.log("SETTO n2->",nick2);
                         }
 
                         if(nick1!="" && nick2!="") break;
@@ -234,27 +197,8 @@ child_process.on("message", (data) =>{
                         nick2:nick2
                     });
                 }
-
-
             }
-           /*  usersPlayGame[countUsers] = data.nick;
-            countUsers++;
-            
-            // DA MODIFICARE
-            if(countUsers % 2 == 0){
-                indiceServer = room.indexOf(false);
-                room[indiceServer] = true;
-                instanceServerUsers[indiceServer]={indice:indiceServer, nick1:usersPlayGame[countUsers-2], nick2:usersPlayGame[countUsers-1]};
-                console.log("TERNA instanceServerUsers: ",instanceServerUsers[indiceServer]);
 
-                serverGame[indiceServer].send({event:"id",indice:indiceServer});
-                serverGame[indiceServer].send({
-                    event:"startUpServer",
-                    nick1:instanceServerUsers[indiceServer].nick1,
-                    nick2:instanceServerUsers[indiceServer].nick2
-                });
-                
-            } */
             break;
         }
         case "myPosition":{
@@ -282,7 +226,6 @@ child_process.on("message", (data) =>{
             break;
         }
         case "puckPosition":{
-            //console.log("EVENTO puckPosition DA:",data.nick);
             
             serverGame[indiceServer].send({event:"id",indice:indiceServer});
             serverGame[indiceServer].send(data);
@@ -309,7 +252,7 @@ updateStatPlayers = (data) =>{
     });
     if(con) {}
     else{
-        console.log("Connessione Fallita!\nImpossibile aggiornare i dati dei player dopo la partita!")
+        console.log("Connessione Fallita!\nImpossibile aggiornare i dati dei player dopo la partita!");
     }
 
     con.connect(function(err) {
@@ -339,14 +282,14 @@ updateStatPlayers = (data) =>{
                     else {}
                 });
                 con.on('error', function(err) {
-                    console.log("W[UPDATE] - [mysql error]",err);
+                    console.log("WINNER[UPDATE] - [mysql error]",err);
                 });
 
             }
         }
         });
         con.on('error', function(err) {
-            console.log("W[SELECT] - [mysql error]",err);
+            console.log("WINNER[SELECT] - [mysql error]",err);
         });
             
         //Loser
@@ -369,17 +312,17 @@ updateStatPlayers = (data) =>{
                         else {}
                     });
                     con.on('error', function(err) {
-                        console.log("L[UPDATE] - [mysql error]",err);
+                        console.log("LOSER[UPDATE] - [mysql error]",err);
                     });
     
                 }
             }
         });
         con.on('error', function(err) {
-            console.log("L[SELECT] - [mysql error]",err);
+            console.log("LOSER[SELECT] - [mysql error]",err);
         });
 
-       /* //TEST
+       /* TEST DOPO LA MODIFICA DEI DATI NEL DATABASE
         con.query("SELECT Nickname,Livello,EXP FROM giocatore", function (err, result, fields) {
         if (err) throw err;
         else{
@@ -391,23 +334,11 @@ updateStatPlayers = (data) =>{
         con.on('error', function(err) {
             console.log("W - [mysql error]",err);
         });
-        //END TEST */
-    });
 
-    // Riavvio instanza data.id serverGame
-     
-    console.log("PADRE [Partita conclusa] -  Salvataggio dati di serverGame[",data.id,"] effettuato!");
-    //process.kill(serverGame[data.id], 'SIGTERM')
+        END TEST */
+    });
     
-    // Eliminazione terna {serverGame,nick1,nick2}
-    /* var index;
-    for(var i=0;i<2;i++){
-        i==0 ? index = usersPlayGame.indexOf(finalDataUsers[data.id].nick1)
-                        : index = usersPlayGame.indexOf(finalDataUsers[data.id].nick2);
-        if (index > -1) {
-            usersPlayGame.splice(index, 1);
-        }   
-    } */
+    console.log("PADRE [Partita conclusa] -  Salvataggio dati di serverGame[",data.id,"] effettuato!");
     
 }
 
@@ -463,17 +394,14 @@ serverGame[0].on("message", (data) =>{
         }
         case "stopServerGame":{
             console.log("PADRE - RESET FIGLIO EFFETTUATO, pos:",data.id);
-            //serverGame[data.id] = fork("serverGame.js");
+
             countUsers[data.id]=0;
             for(var i=0;i<usersPlayGame.length;){
-                //console.log("Ciclo: ", i);
                 if(usersPlayGame[i].stanza==(data.id)+1)   usersPlayGame.splice(i,1);
                 else i++;
             }
             room[data.id] = false;
             instanceServerUsers.splice(data.id,1);
-            ///789 CAZZO DI BUG///
-            //console.log("DOPO LA MODIFICA->",countUsers," - ",usersPlayGame);
         }
     }
 });
@@ -530,17 +458,14 @@ serverGame[1].on("message", (data) =>{
         }
         case "stopServerGame":{
             console.log("PADRE - RESET FIGLIO EFFETTUATO, pos:",data.id);
-            //serverGame[data.id] = fork("serverGame.js");
+           
             countUsers[data.id]=0;
             for(var i=0;i<usersPlayGame.length;){
-                //console.log("Ciclo: ", i);
                 if(usersPlayGame[i].stanza==(data.id)+1)   usersPlayGame.splice(i,1);
                 else i++;
             }
             room[data.id] = false;
             instanceServerUsers.splice(data.id,1);
-            ///789 CAZZO DI BUG///
-            //console.log("DOPO LA MODIFICA->",countUsers," - ",usersPlayGame);
         }
     }
 });
@@ -596,17 +521,14 @@ serverGame[2].on("message", (data) =>{
         }
         case "stopServerGame":{
             console.log("PADRE - RESET FIGLIO EFFETTUATO, pos:",data.id);
-            //serverGame[data.id] = fork("serverGame.js");
+        
             countUsers[data.id]=0;
             for(var i=0;i<usersPlayGame.length;){
-                //console.log("Ciclo: ", i);
                 if(usersPlayGame[i].stanza==(data.id)+1)   usersPlayGame.splice(i,1);
                 else i++;
             }
             room[data.id] = false;
             instanceServerUsers.splice(data.id,1);
-            ///789 CAZZO DI BUG///
-            //console.log("DOPO LA MODIFICA->",countUsers," - ",usersPlayGame);
         }
     }
 });
@@ -663,20 +585,18 @@ serverGame[3].on("message", (data) =>{
         }
         case "stopServerGame":{
             console.log("PADRE - RESET FIGLIO EFFETTUATO, pos:",data.id);
-            //serverGame[data.id] = fork("serverGame.js");
+
             countUsers[data.id]=0;
             for(var i=0;i<usersPlayGame.length;){
-                //console.log("Ciclo: ", i);
                 if(usersPlayGame[i].stanza==(data.id)+1)   usersPlayGame.splice(i,1);
                 else i++;
             }
             room[data.id] = false;
             instanceServerUsers.splice(data.id,1);
-            ///789 CAZZO DI BUG///
-            //console.log("DOPO LA MODIFICA->",countUsers," - ",usersPlayGame);
         }
     }
 });
+
 /* COMUNICAZIONE DA PADRE A FIGLIO */
 /*
 child_process.send({
@@ -685,7 +605,6 @@ child_process.send({
 */
 
 var serverHTTP = http.createServer((req,res) =>{
-
 
     //console.log("Messaggio ricevuto", req.url);
 
@@ -1023,10 +942,6 @@ var serverHTTP = http.createServer((req,res) =>{
 
 
 
-
-
-
-
         else if(req.url.indexOf('glyphicons-halflings-regular.eot') != -1){
             fs.readFile(__dirname + '/fonts/bootstrap/glyphicons-halflings-regular.eot', function (err, data) {
                 if (err) console.log(err);
@@ -1102,17 +1017,7 @@ var serverHTTP = http.createServer((req,res) =>{
         }
 
 
-
-
-
-
-
-
-
-
-
-
-
+        /*
         else if(req.url.indexOf('prova.css') != -1){
             fs.readFile(__dirname + './prova.css', function (err, data) {
                 if (err) console.log(err);
@@ -1120,7 +1025,7 @@ var serverHTTP = http.createServer((req,res) =>{
                 res.write(data);
                 res.end();
             });
-        }
+        } */
         else if(req.url.indexOf('css/animate.css') != -1){
             fs.readFile(__dirname + '/css/animate.css', function (err, data) {
                 if (err) console.log(err);
@@ -1154,7 +1059,7 @@ var serverHTTP = http.createServer((req,res) =>{
                 res.end();
             });
         }
-        else if(req.url.indexOf('style.css') != -1){ //req.url has the pathname, check if it conatins '.css'
+        else if(req.url.indexOf('style.css') != -1){ 
             fs.readFile(__dirname + '/www/css/style.css', function (err, data) {
                 if (err) console.log(err);
                 res.writeHead(200, {'Content-Type': 'text/css'});
@@ -1162,7 +1067,7 @@ var serverHTTP = http.createServer((req,res) =>{
                 res.end();
             });
         }
-        else if(req.url.indexOf('bootstrap.min.css') != -1){ //req.url has the pathname, check if it conatins '.css'
+        else if(req.url.indexOf('bootstrap.min.css') != -1){ 
             fs.readFile(__dirname + '/www/bootstrap/css/bootstrap.min.css', function (err, data) {
                 if (err) console.log(err);
                 res.writeHead(200, {'Content-Type': 'text/css'});
@@ -1174,22 +1079,6 @@ var serverHTTP = http.createServer((req,res) =>{
             res.writeHead(200, { "Content-Type": "text/html" });
             fs.createReadStream("./index.html", "UTF-8").pipe(res);
         }
-
-
-
-                 
-
-
-
-
-
-
-
-
-
-
-        
-
     } 
     else if (req.method == "POST") {
         
@@ -1198,7 +1087,7 @@ var serverHTTP = http.createServer((req,res) =>{
             body += chunk.toString(); // convert Buffer to string
         });
         req.on('end', () => {
-            // Split dati ricavati da richiesta POST
+            // Split dei dati ricavati dalla richiesta di tipo POST
             var contenitore = [];
             contenitore=body.split("&");
             contenitore=contenitore.toString();
@@ -1333,7 +1222,6 @@ var serverHTTP = http.createServer((req,res) =>{
                                     
                                     usersConnected[usersConnected.length] = usr;
 
-                                    ///789-CAZZO DI BUG///
                                     var userRoomPlay = getNickUsers();
 
                                     res.setHeader('Set-Cookie', ['nick='+result[0].Nickname+'', 'liv='+result[0].Livello+'', 'ex='+result[0].EXP+'','esp_prev='+result[0].EXP+'','room1='+room[0]+'','room2='+room[1]+'','room3='+room[2]+'','room4='+room[3]+'','namePlayer='+userRoomPlay+'']);
@@ -1350,23 +1238,19 @@ var serverHTTP = http.createServer((req,res) =>{
                 }
                 else if(contenitore[i]=="PlayGame"){
                     /* Re-Indirizzamento form StartGame */
-                    ///789///
-                    console.log("DATI userPlayGame: ",usersPlayGame);
-                    console.log("CONTENUTO RICEVUTO: ",contenitore, "-> ",contenitore[2]);
                     
                     if( (contenitore[2]=="1" && room[0]==false) ||
                         (contenitore[2]=="2" && room[1]==false) ||
                         (contenitore[2]=="3" && room[2]==false) ||
                         (contenitore[2]=="4" && room[3]==false) ||
                         (contenitore[2]=="random" && (room[0]==false || room[1]==false || room[2]==false || room[3]==false))){
-                        // Scelta stanza(partita) numero 01
+                        // Scelta stanza(partita)
                         res.setHeader('Set-Cookie', ['selectRoom='+contenitore[2]+'']);
                         res.writeHead(200, { "Content-Type": "text/html" });
                         fs.createReadStream("./startGame.html", "UTF-8").pipe(res);
                     }
                     else{
-                        // Caso nel quale tutte le stanze/stanza selezionata sono occupate
-                        ///789///
+                        // Caso nel quale le stanze/stanza selezionate/selezionata sono/e' occupate/a
                         
                         var userRoomPlay = getNickUsers();
                         console.log("RIS FINALE-> ",userRoomPlay);
@@ -1416,14 +1300,12 @@ var serverHTTP = http.createServer((req,res) =>{
                     }
                     });
                     con.on('error', function(err) {
-                        console.log("W - [mysql error]",err);
+                        console.log("[mysql error]",err);
                     });
                       
                 }
                 
             }
-
-            //console.log("BODY->",body);
         });
 
     }

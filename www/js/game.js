@@ -17,89 +17,121 @@ app.bool = false;
 app.boolBall = false;
 app.posBallX;
 app.posBallY;
-//app.nickname = prompt("Inserisci il nickname");
 app.nickname;
+app.puck = {};
+app.changePuck = false;
+app.timer = 3000;
+app.respawnPuck = false;
+app.finishGame = false;
+app.EnD = false;
+app.stanza;
+app.check = false;
+app.velocity=0;
 var socket = io('http://127.0.0.1:8081');
 
-      
+function delayTime(spawn){
+    app.check=true;
+    setTimeout(function myTime(){
+        if(spawn == true){
+            app.respawnPuck=true;
+            
+        }
+        else{
+            resocontoPartita("","ENDGame",app.nickname);
+        }
+    },app.timer);
+}
+
 var elementsCookie = document.cookie.split('; ');
-//    console.log("VAL_COOKIE->",elementsCookie);
 
 for(var i=0;i<elementsCookie.length;i++){
-//    console.log("CONFRONTO->",elementsCookie[i],"--- substr->",elementsCookie[i].substr(0,4));
     if(elementsCookie[i].substr(0,4)=="nick"){
         var tmp = elementsCookie[i].split('=');
         var tmp = tmp[1].split(';');
         app.nickname = tmp[0];
     }
-    
+    if(elementsCookie[i].substr(0,10)=="selectRoom"){
+        var tmp = elementsCookie[i].split('=');
+        var tmp = tmp[1].split(';');
+        app.stanza = tmp[0];
+    }
 }
-//    console.log("JS - SONO NICK=",app.nickname);
+console.log("QUESTA è LA STANZA-> ",app.stanza);
+
+function resocontoPartita(path, nameURL, param,method){
+    method = "post";
+    
+    var form = document.createElement("form");
+    form.setAttribute("method", method);
+
+    var hiddenField = document.createElement("input");
+    hiddenField.setAttribute("type", "hidden");
+    hiddenField.setAttribute("name", nameURL);
+
+    form.appendChild(hiddenField);
+
+    var hiddenField2 = document.createElement("input");
+    hiddenField2.setAttribute("type", "hidden");
+    hiddenField2.setAttribute("name", param);
+
+    form.appendChild(hiddenField2);
 
 
+    document.body.appendChild(form);
+    form.submit();
+}
 
-if(!app.nickname) window.location.reload();
-console.log("Nome utente: ",app.nickname);
 
-socket.emit("login", {nickname:app.nickname});
-/*
-socket.emit("myPosition",{text:"ciao"});
-socket.emit("rivalPosition",{text:"ciao"});
-socket.emit("moveMyPosition",{text:"ciao"});
-socket.emit("goalSuffered",{text:"ciao"});
-*/
+socket.emit("requestStartGame", {nickname:app.nickname,stanza:app.stanza});
+
 socket.on("users_game", (data) =>{
     app.rival.nickname=data.rival;
-    console.log("RIVALE->",app.rival.nickname);
-});
-
-socket.on("gameRefused", () =>{
-    alert("Tutte le stanze sono attualmente occupate!")
 });
 
 socket.on("myPosition", (data) =>{
     app.posX = data.posX;
-    app.posY = data.posY;        
-    console.log("DATI myPosition posX:",app.posX," posY:",app.posY);
+    app.posY = data.posY;
 });
 
 socket.on("rivalPosition", (data) =>{
-    console.log("VALORI DATA->",data);
     app.rival.posX = data.posX;
     app.rival.posY = data.posY;
-    console.log("DATI rivalPosition posX:",app.rival.posX," posY:",app.rival.posY);
 });
 
 socket.on("moveRivalPosition", (data) =>{
-    app.rival.posX = data.posX;
-    app.rival.posY = data.posY;
+    app.rival.posX = data[0];
+    app.rival.posY = data[1]; 
+});
+
+socket.on("setPositionPuck", (data) =>{
+    app.posBallX=data[0];
+    app.posBallY=data[1];
 });
 
 socket.on("puckPosition", (data) =>{
-    puck = data.puck;  
-    console.log("DATI_PUCK  puck:",puck);
+    app.changePuck=false;
+    app.posBallX=data[0];
+    app.posBallY=data[1];
 });
 
 socket.on("setIDPorta", (data) =>{
     app.idPorta = data.idPorta;
-    console.log("idPorta:",app.idPorta);
 });
 
 socket.on("refreshScoreGame", (data) =>{
-    if(data.nickname == app.nickname){
-        app.score = data.score;
-        console.log("PUNTEGGIO di: ",app.nickname,", totale: ",app.score);
+    if(data[0] == app.nickname){
+        app.score = data[1];
     }
     else{
-        app.rival.score = data.score;
-        console.log("PUNTEGGIO di: ",app.rival.nickname,", totale: ",app.rival.score);
+        app.rival.score = data[1];
     }
     app.bool = true;
 });
 
 socket.on("positionBall", (data) =>{
-    app.posBallX = data.x;
-    app.posBallY = data.y;
+    app.posBallX = data[0];
+    app.posBallY = data[1]; 
+    
     app.boolBall = true;
 });
 
@@ -107,31 +139,33 @@ socket.on("start_game", (data) => {
     app.start=data.start;
     
     console.log("Inizia la partita! - Prelevo i dati necessarti per giocare...");
-    socket.emit("myPosition",{nickname:app.nickname});
     socket.emit("rivalPosition",{nickname:app.nickname,nickname_rival:app.rival.nickname});
    
     inizio();
 });
 
 socket.on("finishGame", () =>{
-//    textEndGame.setVisible(true);
+    app.finishGame=true;
+    app.EnD=true;
 });
 
 //socket.emit("disconnection", {nickname:app.nickname});
 
 if(!app.start){
-    console.log("Attendi l'avversario...");
+    //console.log("Attendi l'avversario...");
 }
 
 inizio = (data) =>{
+    
 var config = {
-    type:Phaser.AUTO,
+     type:Phaser.AUTO,
     width:800,
     height:900,
+    parent: 'campo',
     physics: {
         default: 'arcade',
         arcade: {
-        //    debug: true
+            debug: false
         },
     },
     scene: {
@@ -140,6 +174,7 @@ var config = {
         update: update
     }
 }
+
 var graphips;
 var game = new Phaser.Game(config);
 
@@ -153,33 +188,34 @@ var porta1;
 var porta2;
 
 var border = [];
-var colorBorder = ['line - red','line - red - small','line - green','line - green - small','line - yellow','line - yellow - small','line - blue','line - blue - small'];
+var colorBorder = ['lineRed','lineRedSmall','lineGreen','lineGreenSmall','lineYellow','lineYellowSmall','lineBlue','lineBlueSmall'];
 var positionBorderX = [18,175,785,620,18, 180,785,620];
 var positionBorderY = [225,10,225,10,675, 890,675,890];
 
+// Funzione di caricamento delle immagini all'interno il gioco
 function preload(){
-    this.load.image('background', "assets/img/sfondo_.png");
+    this.load.image('background', "Sfondo_.png");
 
-    this.load.image('line - red', "assets/img/line - red.png");
-    this.load.image('line - red - small', "assets/img/line - red - small.png");
+    this.load.image('lineRed', "lineRed.png");
+    this.load.image('lineRedSmall', "lineRedsmall.png");
 
-    this.load.image('line - green', "assets/img/line - green.png");
-    this.load.image('line - green - small', "assets/img/line - green - small.png");
+    this.load.image('lineGreen', "lineGreen.png");
+    this.load.image('lineGreenSmall', "lineGreenSmall.png");
     
-    this.load.image('line - yellow', "assets/img/line - yellow.png");
-    this.load.image('line - yellow - small', "assets/img/line - yellow - small.png");
+    this.load.image('lineYellow', "lineYellow.png");
+    this.load.image('lineYellowSmall', "lineYellowSmall.png");
     
-    this.load.image('line - blue', "assets/img/line - blue.png");
-    this.load.image('line - blue - small', "assets/img/line - blue - small.png");
+    this.load.image('lineBlue', "lineBlue.png");
+    this.load.image('lineBlueSmall', "lineBlueSmall.png");
     
-    this.load.image('line - cyan', "assets/img/line - cyan.png");
-    this.load.image('line - cyan - small', "assets/img/line - cyan - small.png");
+    this.load.image('lineCyan', "lineCyan.png");
+    this.load.image('lineCyanSmall', "lineCyanSmall.png");
     
-    this.load.image('porta',"assets/img/porta.png");
+    this.load.image('porta',"porta.png");
 
-    this.load.image('striker1','assets/img/striker.png');
-    this.load.image('striker2','assets/img/striker.png');
-    this.load.image('puck','assets/img/puck.png');
+    this.load.image('striker1',"striker.png");
+    this.load.image('striker2',"striker.png");
+    this.load.image('puck',"puck.png");
 }
 
 function create(){
@@ -191,7 +227,7 @@ function create(){
     this.image = this.add.image(400,450,'background');
 
    
-    //Metodo per la creazione dei bordi
+    // Creazione dei bordi
     for(var i=0;i<8;i++){
         border[i] = this.physics.add.sprite(positionBorderX[i],positionBorderY[i],colorBorder[i]);
        
@@ -211,38 +247,28 @@ function create(){
     porta2.setVisible(false);
     porta2.name = app.nickname;
 
+
     textGol = this.add.text(290, 410, "Goal!", { font: '75px Courier', fill: '#000000' });
     textGol.setVisible(false);
     textEndGame = this.add.text(135, 410, "Finish game!", { font: '75px Courier', fill: '#000000' });
     textEndGame.setVisible(false);
 
-/*
-    if(app.idPorta==0){
-        porta1.name = app.nickname;
-        console.log(app.nickname,",",porta1.idPorta);
-    }
-    else{
-        porta2.name = app.nickname;
-        console.log(app.nickname,",",porta2.idPorta);
-    }
-*/
     textScore = this.add.text(5, 498, (app.score+' - '+app.rival.score), { font: '32px Courier', fill: '#000000' });
     textScore.angle = -90;
 
+    // Inizializzazione Striker1
     striker1 = this.physics.add.sprite(app.rival.posX,app.rival.posY,'striker1').setInteractive({ draggable: true});
     striker1.body.setCircle(40);
-//    striker1.body.setBounce(1,1);
 
-    // Qui inizializziamo i vari striker e li rendiamo trascinabili
+    // Qui inizializziamo Striker2 e lo rendiamo trascinabile
     striker2 = this.physics.add.sprite(app.posX,app.posY,'striker2').setInteractive({ draggable: true});
     striker2.body.setCircle(40);
-//    striker2.body.setBounce(1,1);
 
 //   var style2 = {font: "25px Arial Black", color: "black", wordWrap:true, wordWrapWidth: striker2.width,  align: "center"};
     var style2 = {font: "25px Arial", fill: "#ff0044", wordWrap: { width: 300 }, wordWrapWidth: striker2.width, align: "center", backgroundColor: "#ffff00"  }
     nickname = this.add.text(50,50, app.nickname, style2);
    
-    // Tramite questa funzione è possibile far spostare lo striker nella posizione del puntatore
+    // Tramite questa funzione è possibile trascinare lo striker con il cursore
     striker2.on('drag', function(pointer, dragX, dragY){
         
         if(dragY>490 && dragY<840 && dragX>75 && dragX<725){
@@ -250,72 +276,54 @@ function create(){
             this.y = dragY;
             app.posX = dragX;
             app.posY = dragY;
-
-            socket.emit("moveMyPosition", {nickname:app.nickname, x:app.posX, y:app.posY});
+            //app.velocity++;
+            if(!app.EnD){
+                socket.emit("moveMyPosition", {nickname:app.nickname, x:app.posX, y:app.posY});
+            }
         }  
     });
-    
     striker2.setImmovable();
     
-
+    
     puck = this.physics.add.sprite(app.posBallX,app.posBallY, 'puck');
     puck.body.setCircle(20);
 //    puck.body.setVelocity(100,200);
-//    puck.body.setBounce(1,1);
+    puck.body.setBounce(1,1);
 
     puck.body.collideWorldBounds = true;
         
-    this.physics.add.collider(puck, [striker1,striker2]);
+    this.physics.add.collider(puck, striker2);
     this.physics.add.collider(puck, border);
     this.physics.add.collider([striker1,striker2], border);
- 
-    /* this.physics.add.overlap(puck, [porta1,porta2], ()=>{
-        console.log("hit");
-    }); */
+    this.physics.add.collider(puck,[porta1,porta2]);
 
     graphics = this.add.graphics(0,0);
 }
 
 
 function update(){
+    //app.velocity++;
+    //console.log("--->",app.velocity);
+    if(app.changePuck){
+        socket.emit("puckPosition",{nickname:app.nickname,
+            data:[puck.x, puck.y]
+        });
+    }
+    else{
+        puck.x=app.posBallX;
+        puck.y=app.posBallY;
+    }
     
     striker1.x = app.rival.posX;
     striker1.y = app.rival.posY;
-/*
-    puck.x = app.posBallX;
-    puck.y = app.posBallY;
-*/
+
     nickname.x = striker2.x - 65;
     nickname.y = Math.floor(striker2.y + striker2.height / 2);
-//    puck.body.acceleration = 0;
     
     if(app.bool){
-        textGol.setVisible(true);
         textScore.setVisible(false);
         textScore = this.add.text(5, 498, (app.score+' - '+app.rival.score), { font: '32px Courier', fill: '#000000' });
         textScore.angle = -90;
-
-/*
-        var waitTill = new Date();
-        //  new Date().getTime() +  new Date().getSeconds() * 2000
-        console.log(waitTill);
-        waitTill.setSeconds(waitTill.getSeconds()+2);
-        while(waitTill > new Date()){
-            textGol = this.add.text(290, 410, "Goal!", { font: '75px Courier', fill: '#000000' });
-        
-            console.log("Aspetto...");
-        }
-
-        if(waitTill < new Date){
-            textGol.setVisible(false);
-        } 
-
-       //  setTimeout(() =>{
-    //        textGol = this.add.text(290, 410, "Goal!", { font: '75px Courier', fill: '#000000' });
-            
-    //    },3000); 
-*/
-    //    textGol.setVisible(false);
         app.bool = false;
     }
     if(app.boolBall){
@@ -324,46 +332,72 @@ function update(){
         app.boolBall = false;
     }
 
-
-    this.physics.world.collide(puck, [striker1, striker2],(data)=>{
+    // Collisione puck con striker2
+    this.physics.world.collide(puck,striker2,(data)=>{
         console.log("Collision!");
-    //    socket.emit("puckPosition",{puck:puck,nickname:app.nickname});
         puck.setVelocity(0, Phaser.Math.Between(100, 500));
-        puck.setAngularDrag(90);
-    })
-
-    this.physics.collide(puck,porta2,()=>{
-        console.log("Gol!");
-        if(app.nickname == porta2.name){
-            console.log("Gol subito sulla porta: ",porta2.name);
-            socket.emit("goalSuffered",{nickname:app.nickname});
+        //puck.setAngularDrag(90);
+        console.log("COLPISCO PUCK->",puck);
+        
+        if(app.changePuck==false){
+            socket.emit("puckPosition",{nickname:app.nickname,
+                data:[puck.x, puck.y]
+            });
+            app.changePuck=true;
         }
     });
 
+    // Collisione puck con porta1
+    this.physics.collide(puck,porta1,()=>{
+        app.changePuck=false;
+        puck.destroy();
+        textGol.setVisible(true);
+        delayTime(true);
+    });
+
+    // Collisione puck con porta2
+    this.physics.collide(puck,porta2,()=>{
+        app.changePuck=false;
+        puck.destroy();
+        textGol.setVisible(true);
+        if(app.nickname == porta2.name){
+            socket.emit("goalSuffered",{nickname:app.nickname});
+            delayTime(true);
+        }
+    });
+
+    if(app.check){
+        puck.setVisible(false);
+    }
+
+    // Respawn pallina dopo il goal
+    if(app.respawnPuck && app.check){
+        app.respawnPuck=false;
+        app.check=false;
+        textGol.setVisible(false);
+
+        if(app.finishGame){
+            textEndGame.setVisible(true);
+            delayTime(false);
+        }
+        else{
+            puck = this.physics.add.sprite(app.posBallX,app.posBallY,'puck');
+            puck.body.setCircle(20);
+        
+            puck.body.collideWorldBounds = true;
+                
+            this.physics.add.collider(puck, striker2);
+            this.physics.add.collider(puck, border);
+            this.physics.add.collider([striker1,striker2], border);
+            //textGol.setVisible(false);
+        }
+
+    }
 
     this.physics.collide(puck,border,(data)=>{
         console.log("Collision!");
         puck.setVelocity(0, Phaser.Math.Between(100,500));
-        puck.setAngularDrag(90); 
-    //    socket.emit("puckPosition",{puck:puck,nickname:app.nickname});
- 
- 
- 
-    //    var i = border.data.get('number');
-        
-
-        /* Se vogliamo cambiare il colore del bordo dinamicamnte nel monento in cui il puck tocca uno dei bordi
-            if(border.number == colorBorder[i]){
-            if(i%2==0){
-                border[i] = this.physics.add.sprite(positionBorderX[i],positionBorderY[i],'line - cyan');
-            }
-            else{
-                border[i] = this.physics.add.sprite(positionBorderX[i],positionBorderY[i],'line - cyan - small');
-            }
-        }
-        else{
-            border[i] = this.physics.add.sprite(positionBorderX[i],positionBorderY[i],colorBorder[i]);
-        } */
+        puck.setAngularDrag(120);
     });
 
 

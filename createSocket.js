@@ -1,4 +1,4 @@
-console.log("--------------SONO IL FIGLIOOOO!!");
+console.log("Avvio processo socket!!");
 var express = require('express');
 var app = express();
 var EventEmitter = require('events').EventEmitter;          // Forse
@@ -19,13 +19,7 @@ listener.listen(8081, function(){
     console.log("socketServer sono in ascolto sulla porta " + listener.address().port); 
 });
 
-/* process.on("message", (data) => {
-    console.log("Processo Figlio ha ricevuto: ", data);
-//    process.disconnect();
-}); */
-
-//process.send({ it: 'Ciao', en: 'Hello' });
-
+//Forse da togliere
 logger.on("info", (message) =>{
     logs.info(message);
 });
@@ -84,25 +78,14 @@ listener.on("connection", (client) =>{
             nickname: data.nickname,
             stanza : data.stanza
         }
-    //    console.log("SONO DENTRO LA LOGIN!");
-
-        //if(usersSocket.length < LIMIT){
-            console.log("GIOCATORE ACCETTATO");
-            usersSocket[usersSocket.length] = oggettoDaSalvare;
-            
-            process.send({event:"requestStartGame",nick:oggettoDaSalvare.nickname,stanza:oggettoDaSalvare.stanza});
-        //}
-        /* else{
-            console.log("GIOCATORE RIFIUTATO");
-            oggettoDaSalvare.socket.emit("gameRefused",{});
-        } */
-                                                                                            //    process.send( JSON.stringify({socket: oggettoDaSalvare.socket, nickname: oggettoDaSalvare.nickname}) );
-                                                                                            //    console.log(stringifyObject(client));
-                                                                                                /*    var prova = JSON.stringify(client);
-                                                                                                console.log("+->",prova) */
-                                                                                        /*  var x = JSON.stringify(oggettoDaSalvare,replacer);
-                                                                                            console.log("MEX_FIGLIO",x);
-                                                                                            process.send(x); */                                                                                                
+    
+        console.log("Il giocatore ",data.nickname," ha mandato un messaggio sulla socket!");
+        usersSocket[usersSocket.length] = oggettoDaSalvare;
+        
+        process.send({event:"requestStartGame",nick:oggettoDaSalvare.nickname,stanza:oggettoDaSalvare.stanza});
+    
+        // Non è stato possibile mandare un intero riferimento al padre
+        //    process.send( JSON.stringify({socket: oggettoDaSalvare.socket, nickname: oggettoDaSalvare.nickname}) );
     });
 
     client.on("myPosition", (data) =>{
@@ -156,7 +139,7 @@ listener.on("connection", (client) =>{
                 nick = usersSocket[i].nickname;
             }
         }
-        //console.log("++++++++++++++++++++++++++++\n----------11111-----------------------------\n",data,"*******************************\n");
+        
         process.send({event:"puckPosition", data:data.data,nick:nick});
     });
 
@@ -173,23 +156,14 @@ listener.on("connection", (client) =>{
 });
 
 process.on("message", (data) => {
-    /* console.log("-----------");
-    console.log("-----------");
-    console.log(data);
-    for(var i=0;i<usersSocket.length;i++){
-     //   console.log(usersSocket[i]);
-        console.log(usersSocket[i].nickname);
-    } */
+    
+    //  console.log("MSG MANDATO: \t",data);
 
-    console.log("MSG MANDATO: \t",data);
-
+    //Attraverso questo ciclo prendiamo il riferimento alla socket interessata
     var socketClient;
     for(var i=0;i<usersSocket.length;i++){
-    //    console.log("SONO DENTRO IL CICLO");
         if(data.nick===usersSocket[i].nickname){
-        //    console.log("SONO DENTRO IF");
             socketClient=usersSocket[i].socket;
-        //    console.log("Contenuto socketClient: ", socketClient);
         }
     }
 
@@ -199,9 +173,6 @@ process.on("message", (data) => {
             break;
         }
         case "positionBall":{
-        //    console.log("SOCKET RISPOSTA_>",data);
-        //    if(socketClient) console.log("SOCKET RISPOSTA - VERO");
-            console.log("++++++++++++++++++++++++++++++++++\n",data,"\n++++++++++++++++++++++++++++");
             socketClient.emit(data.event,data.data);
             break;
         }
@@ -222,7 +193,6 @@ process.on("message", (data) => {
             break;
         }
         case "puckPosition":{
-        //    console.log("------------------------------------------------------\n.........................................\nSOCKET MY POSITION->",data);
             socketClient.emit(data.event,data.data);
             break;
         }
@@ -235,7 +205,6 @@ process.on("message", (data) => {
             break;
         }
         case "refreshScoreGame":{
-            //console.log("****MEX SPEDITO****->",data);
             socketClient.emit(data.event,data.data);
             break;
         }

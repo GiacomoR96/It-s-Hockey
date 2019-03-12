@@ -4,7 +4,6 @@
         
         <script src="/phaser.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
-    <!--    <script src="/socket.io/socket.io.js"></script> -->
         <script src="game.js"></script>
         
         <meta charset="utf-8">
@@ -53,41 +52,35 @@
 
 
         <script>
-            // Retrieve
-            var _nick; // = sessionStorage.getItem("nickname");
+            var _nick;
             var _liv;
             var _exp;
-            //    alert("VALORE SALVATO: "+x);
-
+            
             var elementsCookie = document.cookie.split('; ');
             console.log("VAL_COOKIE->",elementsCookie);
             
             for(var i=0;i<elementsCookie.length;i++){
             //    console.log("CONFRONTO->",elementsCookie[i],"--- substr->",elementsCookie[i].substr(0,4));
                 if(elementsCookie[i].substr(0,4)=="nick"){
-                //    console.log("CI PASSO!1");
                     var tmp = elementsCookie[i].split('=');
                     var tmp = tmp[1].split(';');
                     _nick = tmp[0];
                 }
                 else if(elementsCookie[i].substr(0,3)=="liv"){
-                //    console.log("CI PASSO!2");
                     var tmp = elementsCookie[i].split('=');
                     var tmp = tmp[1].split(';');
                     _liv = tmp[0];
                 }
                 else if(elementsCookie[i].substr(0,2)=="ex"){
-                //    console.log("CI PASSO!3");
                     var tmp = elementsCookie[i].split('=');
                     var tmp = tmp[1].split(';');
                     _exp = tmp[0];
                 }
 
             }
-
-            console.log("SONO NICK=",_nick);
+            /* console.log("SONO NICK=",_nick);
             console.log("SONO LIV=",_liv);
-            console.log("SONO EX=",_exp);
+            console.log("SONO EX=",_exp); */
 
             document.getElementById("nick").innerHTML = _nick;
             document.getElementById("liv").innerHTML = _liv;

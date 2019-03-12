@@ -1,9 +1,9 @@
-/* Inizializzazione del figlio */
+/* Inizializzazione del figlio per la partita */
 
 var express = require("express");
 var app = express();
 
-console.log("ServerGiocoFiglio avviato...",process.pid);
+console.log("ServerGiocoFiglio avviato... PID:(",process.pid,")");
 
 var nickname1;
 var nickname2;
@@ -25,7 +25,7 @@ function delayTime(){
 }
 
 reset = () =>{
-    // BELLE STE ARROW FUNCTION ♥ (CAZZO DI BUG)
+    // Azzeramento valori dopo il termine della partita
     nickname1 = nickname2 = "";
 
     dataClients = [];
@@ -34,8 +34,7 @@ reset = () =>{
 }
 
 process.on("message", (data) => {
-    //console.log("SERVER_GAME ha ricevuto: ",data);
-
+    
     switch(data.event){
         case "id":{
             id = data.indice;
@@ -107,7 +106,7 @@ process.on("message", (data) => {
         }
         
         case "puckPosition": {
-            // FARE QUI LA SPECULARITA'
+            // Gestione della specularita' del puck
             var name = (data.nick==nickname1)?nickname2:nickname1;
             
             var position = {
@@ -161,23 +160,19 @@ process.on("message", (data) => {
             var i = (data.nick==nickname1)?1:0;
             punteggioPartita[i]+=1;
 
-            // QUELLO CHE HA SUBITO (VANTAGGIO DI POSIZIONE)
+            // Giocatore che ha subito il gol (VANTAGGIO DI POSIZIONE)
             
             process.send({id:id,nick:nickname1,event:"refreshScoreGame",data: [nickname1, punteggioPartita[0]]});
             process.send({id:id,nick:nickname1,event:"refreshScoreGame",data: [nickname2, punteggioPartita[1]]});
 
-            // QUELLO CHE HA SEGNATO
+            // Giocatore che ha segnato il gol
             process.send({id:id,nick:nickname2,event:"refreshScoreGame",data: [nickname1, punteggioPartita[0]]});
             process.send({id:id,nick:nickname2,event:"refreshScoreGame",data: [nickname2, punteggioPartita[1]]});
             
             if(punteggioPartita[0] >= punteggioFinale || punteggioPartita[1] >= punteggioFinale){
                 process.send({id:id,nick:nickname1,event:"finishGame"});
                 process.send({id:id,nick:nickname2,event:"finishGame"});
-                //process.send({id:id,nick:nickname1,event:"finishGame"});
-                //process.send({id:id,nick:nickname2,event:"finishGame"});
                 
-                //delayTime();
-
                 process.send({id:id,event:"updateDataDB",nick1:nickname1,nick2:nickname2,winner:punteggioPartita[1]>punteggioPartita[0]?nickname1:nickname2});
                 
                 delayTime();
@@ -196,53 +191,3 @@ process.on("message", (data) => {
     }
 
 });
-
-
-/*
-    EVENT - puckPosition
-
-    //console.log("PUCK_POSITION!!!111|!!1!1!-///0",data,"\n\n");
-            //puck = data.data.puck;
-            /* console.log("SONO ",data.nick," con PUCK!->",
-            data.data.angle,
-            data.data.angularAcceleration,
-            data.data.angularDrag,
-            data.data.angularVelocity,
-            data.data.bottom,
-            data.data.center,
-            data.data.embedded,
-            data.data.left,
-            data.data.newVelocity,
-            data.data.position,
-            data.data.prev,
-            data.data.right,
-            data.data.speed,
-            data.data.transform,
-            data.data.touching,
-            data.data.velocity,
-            data.data.wasTouching,
-            ); */
-            
-            //}
-            /* else{
-                console.log("MANDO 222!");
-                process.send({id:id,nick:nickname1,event:"puckPosition",
-                data:[data.data.angle,
-                    data.data.angularAcceleration,
-                    data.data.angularDrag,
-                    data.data.angularVelocity,
-                    data.data.bottom,
-                    data.data.center,
-                    data.data.embedded,
-                    data.data.left,
-                    data.data.newVelocity,
-                    data.data.position,
-                    data.data.prev,
-                    data.data.right,
-                    data.data.speed,
-                    data.data.transform,
-                    data.data.touching,
-                    data.data.velocity,
-                    data.data.wasTouching]});
-            } 
-*/

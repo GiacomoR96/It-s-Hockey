@@ -149,6 +149,8 @@
 
 
 
+
+
 /* DA SISTEMARE */
 .titolo{
     font-size: 60px;
@@ -178,7 +180,7 @@ input[type="submit"]{
     background:black;
     border: 1;
 }
-#wrapper{
+.wrapper{
     width:100%;
     height:300px;
 }
@@ -187,7 +189,7 @@ input[type="submit"]{
     float:left;
     margin-left: 100px;
 }
-#credenziali{
+.credenziali{
     margin-left: 80px;
     font-size: 20px;
 }

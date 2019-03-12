@@ -15,7 +15,7 @@
 	<meta name="twitter:image" content="" />
 	<meta name="twitter:url" content="" />
 	<meta name="twitter:card" content="" />
-
+ 
 	<link href='https://fonts.googleapis.com/css?family=Work+Sans:400,300,600,400italic,700' rel='stylesheet' type='text/css'>
 	<link href="https://fonts.googleapis.com/css?family=Playfair+Display:400,700" rel="stylesheet">
 	
@@ -35,50 +35,28 @@
 				
 	<div class="fh5co-loader"></div>
     
-    
-
 	<div id="page">
-            <nav class="fh5co-nav" role="navigation">
-                    <div class="container">
-                        <div class="row"  style="text-align: center">
-                            <div class="left-menu text-right menu-1">
-                                <ul>
-                                    <li><a href="index.html">Esci</a></li>
-                                </ul>
-                            </div>
-                            <div class="logo center-menu text-center" style="padding-bottom: 30px">
-                                <div id="fh5co-logo"><a href="#">It's Hockey!</a></div>
-                            </div>
-                            <div class="right-menu text-left menu-1">
-                                <ul>
-                                    <li><a href="contact.html">Contatti</a></li>
-                                </ul>
-                            </div>
-                        </div>
-                        
+        <nav class="fh5co-nav" role="navigation">
+            <div class="container">
+                <div class="row"  style="text-align: center">
+                    <div class="left-menu text-right menu-1">
+                        <ul>
+                            <li><a href="index.html">Esci</a></li>
+                        </ul>
                     </div>
-                </nav>      
-<!-- DA SISTEMARE -->
-<!--
-    <div class="fh5co-nav container right-menu text-left" style="
-                    margin: 10px;
-                    margin-top: -75px;
-                    width: 10%;
-                    height: 10%;
-                    
-                    ">
-        <ul style="border: 3px solid black; padding:5px">
-            
-            <li class="menu-item" style="display: inline-block; padding: 5px; position: absolute;">Nickname: <span id="nick">ABC</span> </li>
-            <br>
-            <li class="menu-item" style="display: inline-block; padding: 5px; position: absolute;">Livello: <span id="liv">999</span> </li>
-            <br>                                    
-            <li class="menu-item" style="display: inline-block; padding: 5px; position: absolute;">Exp: <span id="ex">-1</span> </li> 
-            <br>
-        </ul>
-
-    </div>
--->        
+                    <div class="logo center-menu text-center" style="padding-bottom: 30px">
+                        <div id="fh5co-logo"><a href="#">It's Hockey!</a></div>
+                    </div>
+                    <div class="right-menu text-left menu-1">
+                        <ul>
+                            <li><a href="contact.html">Contatti</a></li>
+                        </ul>
+                    </div>
+                </div>
+                
+            </div>
+        </nav>      
+       
         <header id="fh5co-header" class="fh5co-cover" role="banner" style="background-image:url(images/img_bg_2.jpg); height:100%">
             <div class="overlay"></div>
             <div class="container">
@@ -186,31 +164,26 @@
 	<script src="js/main.js"></script>
 
     <script>
-        // Retrieve
-        var _nick; // = sessionStorage.getItem("nickname");
+        var _nick;
         var _liv;
         var _exp;
-        //    alert("VALORE SALVATO: "+x);
-
+        
         var elementsCookie = document.cookie.split('; ');
         console.log("VAL_COOKIE->",elementsCookie);
         
         for(var i=0;i<elementsCookie.length;i++){
         //    console.log("CONFRONTO->",elementsCookie[i],"--- substr->",elementsCookie[i].substr(0,4));
             if(elementsCookie[i].substr(0,4)=="nick"){
-            //    console.log("CI PASSO!1");
                 var tmp = elementsCookie[i].split('=');
                 var tmp = tmp[1].split(';');
                 _nick = tmp[0];
             }
             else if(elementsCookie[i].substr(0,3)=="liv"){
-            //    console.log("CI PASSO!2");
                 var tmp = elementsCookie[i].split('=');
                 var tmp = tmp[1].split(';');
                 _liv = tmp[0];
             }
             else if(elementsCookie[i].substr(0,2)=="ex"){
-            //    console.log("CI PASSO!3");
                 var tmp = elementsCookie[i].split('=');
                 var tmp = tmp[1].split(';');
                 _exp = tmp[0];
@@ -218,9 +191,9 @@
 
         }
 
-        console.log("SONO NICK=",_nick);
+        /* console.log("SONO NICK=",_nick);
         console.log("SONO LIV=",_liv);
-        console.log("SONO EX=",_exp);
+        console.log("SONO EX=",_exp); */
 
         document.getElementById("nick").innerHTML = _nick;
         document.getElementById("liv").innerHTML = _liv;
@@ -278,7 +251,7 @@
                 var name;
                 
                 for(var y=0;y<tmp.length;y++){
-                    /*ABBIAMO RISOLTO IN QUESTO MODO PERCHE' LA VITA E' PUTTANA E JAVASCRIPT E' BUGGATO */
+                    /*ABBIAMO RISOLTO IN QUESTO MODO PERCHE' CI SONO STATI PROBLEMI CON L'ASSEGNAZIONE DIRETTA DEI VALORI */
                     name=tmp[y];
                     n[y]=name;
                     console.log("NAME:",y," ->",n[y]);
@@ -292,20 +265,6 @@
         console.log("Val room2=",_room2);
         console.log("Val room3=",_room3);
         console.log("Val room4=",_room4);
-
-        /* // CI HO PROVATO, MA RIP
-        var px=6;
-        console.log("STO CAZZO 1 \n ",document.documentElement.clientWidth);
-        if(document.documentElement.clientWidth > 600){
-            console.log("STO CAZZO 2");
-            if(document.documentElement.clientWidth < 768){
-                console.log("STO SETTANDO IL PX");
-                px=2;
-            }
-        } 
-        
-        document.getElementById("room1").setAttribute("style","margin:"+px+"%"); 
-        */
 
         if(_room1){
             document.getElementById("room1_1").innerHTML = n[0];
