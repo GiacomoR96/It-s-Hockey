@@ -1,21 +1,18 @@
 <html>
-
-    <head>
-        
+    <head>  
         <script src="/phaser.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
         <script src="game.js"></script>
-        
+
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <title>StartGame</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
-            
+ 
         <link href="/www/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css">
         <link href="css/style.css" rel="stylesheet" type="text/css">        
     </head>
     <body class="sfondo">
-
         <div class="container-fluid">
             <div class="row menu-top">
                 <div class="col-md-2">
@@ -32,7 +29,6 @@
                         <li id="ex" class="menu-item"></li> 
                     </ul>
                 </div>
-
             </div>
 
             <div class="row hello-msg">
@@ -42,25 +38,21 @@
                     <button class="btn btn-red">Cliccami</button>
                 </div>
             </div>
-            
             <br><br><br><br><br>
             <div class="col-xs-12 text-center messageWait">
                 <h2>Waiting for another player...</h2>
             </div>
-    
         </div>
-
 
         <script>
             var _nick;
             var _liv;
             var _exp;
-            
+
             var elementsCookie = document.cookie.split('; ');
             console.log("VAL_COOKIE->",elementsCookie);
-            
+
             for(var i=0;i<elementsCookie.length;i++){
-            //    console.log("CONFRONTO->",elementsCookie[i],"--- substr->",elementsCookie[i].substr(0,4));
                 if(elementsCookie[i].substr(0,4)=="nick"){
                     var tmp = elementsCookie[i].split('=');
                     var tmp = tmp[1].split(';');
@@ -78,14 +70,10 @@
                 }
 
             }
-            /* console.log("SONO NICK=",_nick);
-            console.log("SONO LIV=",_liv);
-            console.log("SONO EX=",_exp); */
 
             document.getElementById("nick").innerHTML = _nick;
             document.getElementById("liv").innerHTML = _liv;
             document.getElementById("ex").innerHTML = _exp;
-
         </script>
 
     </body>
