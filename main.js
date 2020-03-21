@@ -1,6 +1,5 @@
 var express = require("express");
 var app = express();
-var EventEmitter = require("events").EventEmitter;          // Forse
 var mysql = require('mysql');
 var port = 8080;
 var http = require('http');
@@ -12,21 +11,15 @@ const {fork} = require ('child_process');
 var child_process = fork('createSocket.js');
 
 // Inizializzazione del padre
-
-console.log("ServerPadre avviato sulla porta ",port,"...");
+console.log("Server **main** avviato sulla porta: ",port);
 
 var serverGame = [];
 var finalDataUsers = [0,0,0,0];
-
 var livEXP = [10,25,45,75,115,165,230,310,405,530];
 var pointWinner=7;
 var pointLoser=3;
 
-// Differenza exp per ogni livello
-// 10 15 20 30 40 50 65 80 95 125
-
-
-for(var i=0;i<4;i++){
+for(var i=0;i<4;i++) {
     serverGame[i] = fork("serverGame.js");      
 }
 
@@ -94,15 +87,12 @@ getNickUsers = () =>{
     return userRoomPlay;
 }
 
-
 /* COMUNICAZIONE DA FIGLIO_SOCKET A PADRE */
 child_process.on("message", (data) =>{
-
     /*  
         La coppia dei giocatori e' gestita con un array di oggetti
         ove ad ogni indice del serverGame corrispondono 2 nick.
-    */ 
-   
+    */
     var indiceServer;
     for(var i=0;i<instanceServerUsers.length;i++){
         if(instanceServerUsers.length>0 && instanceServerUsers[i].nick1==data.nick || instanceServerUsers[i].nick2==data.nick){
@@ -111,23 +101,18 @@ child_process.on("message", (data) =>{
         }
     }
 
-    switch(data.event){
-        case "requestStartGame":{
-            
-            console.log("requestStartGame RICEVUTO-> ",data," __>",data.stanza);
-            
+    switch(data.event) {
+        case "requestStartGame": {
+            console.log("Richiesta avvio partita: ",data);
             var userData = {
                 nick: data.nick,
                 stanza: data.stanza
             };
 
             usersPlayGame[usersPlayGame.length]=userData;
-            console.log("OGGETTO SALVATO= ",usersPlayGame);
+            var nick1 = "", nick2 = "";
 
-            var nick1="",nick2="";
-
-            if(data.stanza=="random"){
-                
+            if(data.stanza == "random") {
                 var stanza=-1;
                 
                 for(var i=0;i<room.length;i++){
@@ -136,8 +121,9 @@ child_process.on("message", (data) =>{
                         break;
                     }
                 }
-                if(stanza==-1)  stanza=room.indexOf(false);
-
+                if(stanza == -1){
+                    stanza = room.indexOf(false);
+                }
                 countUsers[stanza]++;
                 userData.stanza=stanza+1;
                 usersPlayGame[usersPlayGame.length-1]=userData;
@@ -155,7 +141,6 @@ child_process.on("message", (data) =>{
 
                         if(nick1!="" && nick2!="") break;
                     }
-
                     instanceServerUsers[instanceServerUsers.length]={indice:stanza, nick1:nick1, nick2:nick2};
                     console.log("TERNA instanceServerUsers: ",instanceServerUsers[stanza]);
 
@@ -168,20 +153,18 @@ child_process.on("message", (data) =>{
 
                 }
             }
-            else if(data.stanza>=1 && data.stanza<=4){
+            else if (data.stanza >= 1 && data.stanza <= 4) {
                 countUsers[(data.stanza)-1]++;
-                console.log("STANZA RICHIESTA NUMERO->",countUsers);
-                         
-                if(countUsers[(data.stanza)-1]==2){
+                
+                if (countUsers[(data.stanza)-1] == 2){
                     room[(data.stanza)-1]=true;
 
                     for(var i=0;i<usersPlayGame.length;i++){
-            
-                        if(nick1=="" && usersPlayGame[i].stanza==data.stanza){
-                            nick1=usersPlayGame[i].nick;
+                        if(nick1 == "" && usersPlayGame[i].stanza == data.stanza){
+                            nick1 = usersPlayGame[i].nick;
                         }
-                        else if(nick2=="" && usersPlayGame[i].stanza==data.stanza){
-                            nick2=usersPlayGame[i].nick;
+                        else if( nick2 == "" && usersPlayGame[i].stanza == data.stanza){
+                            nick2 = usersPlayGame[i].nick;
                         }
 
                         if(nick1!="" && nick2!="") break;
@@ -198,7 +181,6 @@ child_process.on("message", (data) =>{
                     });
                 }
             }
-
             break;
         }
         case "myPosition":{
@@ -226,7 +208,6 @@ child_process.on("message", (data) =>{
             break;
         }
         case "puckPosition":{
-            
             serverGame[indiceServer].send({event:"id",indice:indiceServer});
             serverGame[indiceServer].send(data);
             break;
@@ -257,18 +238,16 @@ updateStatPlayers = (data) =>{
 
     con.connect(function(err) {
         if (err) throw err;
-        
         var liv;
         var exp;
 
         //Winner
-        
         var usrWinner = finalDataUsers[data.id].nick1==finalDataUsers[data.id].winner?finalDataUsers[data.id].nick1:finalDataUsers[data.id].nick2;
-                        
+
         con.query("SELECT Livello,EXP FROM giocatore WHERE Nickname='"+usrWinner+"'", function (err, result, fields) {
         if (err) throw err;
         else{
-            if(result==''){          
+            if(result == '') {          
             }        
             else{
                 liv=result[0].Livello;
@@ -282,18 +261,17 @@ updateStatPlayers = (data) =>{
                     else {}
                 });
                 con.on('error', function(err) {
-                    console.log("WINNER[UPDATE] - [mysql error]",err);
+                    console.log("WINNER[UPDATE] - [mysql error]", err);
                 });
 
             }
         }
         });
         con.on('error', function(err) {
-            console.log("WINNER[SELECT] - [mysql error]",err);
+            console.log("WINNER[SELECT] - [mysql error]", err);
         });
             
         //Loser
-
         var usrLoser = finalDataUsers[data.id].nick1!=finalDataUsers[data.id].winner?finalDataUsers[data.id].nick1:finalDataUsers[data.id].nick2;
 
         con.query("SELECT Livello,EXP FROM giocatore WHERE Nickname='"+usrLoser+"'", function (err, result, fields) {
@@ -312,36 +290,18 @@ updateStatPlayers = (data) =>{
                         else {}
                     });
                     con.on('error', function(err) {
-                        console.log("LOSER[UPDATE] - [mysql error]",err);
+                        console.log("LOSER[UPDATE] - [mysql error]", err);
                     });
     
                 }
             }
         });
         con.on('error', function(err) {
-            console.log("LOSER[SELECT] - [mysql error]",err);
+            console.log("LOSER[SELECT] - [mysql error]", err);
         });
-
-       /* TEST DOPO LA MODIFICA DEI DATI NEL DATABASE
-        con.query("SELECT Nickname,Livello,EXP FROM giocatore", function (err, result, fields) {
-        if (err) throw err;
-        else{
-            for(var i=0;i<result.length;i++){
-                console.log("TEST DB ",result[i].Nickname," ",result[i].Livello," ",result[i].EXP);
-            }
-        }
-        });
-        con.on('error', function(err) {
-            console.log("W - [mysql error]",err);
-        });
-
-        END TEST */
     });
-    
     console.log("PADRE [Partita conclusa] -  Salvataggio dati di serverGame[",data.id,"] effettuato!");
-    
 }
-
 
 serverGame[0].on("message", (data) =>{
     switch(data.event){
@@ -394,9 +354,8 @@ serverGame[0].on("message", (data) =>{
         }
         case "stopServerGame":{
             console.log("PADRE - RESET FIGLIO EFFETTUATO, pos:",data.id);
-
-            countUsers[data.id]=0;
-            for(var i=0;i<usersPlayGame.length;){
+            countUsers[data.id] = 0;
+            for(var i=0; i < usersPlayGame.length;) {
                 if(usersPlayGame[i].stanza==(data.id)+1)   usersPlayGame.splice(i,1);
                 else i++;
             }
@@ -405,7 +364,6 @@ serverGame[0].on("message", (data) =>{
         }
     }
 });
-
 
 serverGame[1].on("message", (data) =>{
     switch(data.event){
@@ -458,9 +416,8 @@ serverGame[1].on("message", (data) =>{
         }
         case "stopServerGame":{
             console.log("PADRE - RESET FIGLIO EFFETTUATO, pos:",data.id);
-           
-            countUsers[data.id]=0;
-            for(var i=0;i<usersPlayGame.length;){
+            countUsers[data.id] = 0;
+            for(var i=0; i < usersPlayGame.length;) {
                 if(usersPlayGame[i].stanza==(data.id)+1)   usersPlayGame.splice(i,1);
                 else i++;
             }
@@ -521,10 +478,9 @@ serverGame[2].on("message", (data) =>{
         }
         case "stopServerGame":{
             console.log("PADRE - RESET FIGLIO EFFETTUATO, pos:",data.id);
-        
             countUsers[data.id]=0;
             for(var i=0;i<usersPlayGame.length;){
-                if(usersPlayGame[i].stanza==(data.id)+1)   usersPlayGame.splice(i,1);
+                if (usersPlayGame[i].stanza == (data.id)+1)   usersPlayGame.splice(i,1);
                 else i++;
             }
             room[data.id] = false;
@@ -532,7 +488,6 @@ serverGame[2].on("message", (data) =>{
         }
     }
 });
-
 
 serverGame[3].on("message", (data) =>{
     switch(data.event){
@@ -585,10 +540,9 @@ serverGame[3].on("message", (data) =>{
         }
         case "stopServerGame":{
             console.log("PADRE - RESET FIGLIO EFFETTUATO, pos:",data.id);
-
-            countUsers[data.id]=0;
-            for(var i=0;i<usersPlayGame.length;){
-                if(usersPlayGame[i].stanza==(data.id)+1)   usersPlayGame.splice(i,1);
+            countUsers[data.id] = 0;
+            for(var i=0; i < usersPlayGame.length;) {
+                if (usersPlayGame[i].stanza == (data.id)+1)   usersPlayGame.splice(i,1);
                 else i++;
             }
             room[data.id] = false;
@@ -597,19 +551,8 @@ serverGame[3].on("message", (data) =>{
     }
 });
 
-/* COMUNICAZIONE DA PADRE A FIGLIO */
-/*
-child_process.send({
-    message: `Inviato da processo padre con PID: ${process.pid}\n`
-});
-*/
-
 var serverHTTP = http.createServer((req,res) =>{
-
-    //console.log("Messaggio ricevuto", req.url);
-
     if (req.method == "GET") {
-
         console.log(req.url);
 
         if(req.url.indexOf('index.html') != -1){
@@ -1125,7 +1068,7 @@ var serverHTTP = http.createServer((req,res) =>{
                             else{
                                 var userRoomPlay = getNickUsers();
                                     
-                                if(result==''){
+                                if(result == '') {
 
                                     res.setHeader('Set-Cookie', ['room1='+room[0]+'','room2='+room[1]+'','room3='+room[2]+'','room4='+room[3]+'','namePlayer='+userRoomPlay+'']);
                                     res.writeHead(200, { "Content-Type": "text/html" });
@@ -1145,7 +1088,7 @@ var serverHTTP = http.createServer((req,res) =>{
                     })               
                 
                 }
-                else if(contenitore[i]=="RegUsername"){
+                else if(contenitore[i] == "RegUsername"){
                     /* ZONA QUERY SQL REGISTRATION */
                     console.log("Registrazione");
 
@@ -1188,9 +1131,8 @@ var serverHTTP = http.createServer((req,res) =>{
                     })
                     
                 }
-                else if(contenitore[i]=="LoginUsr"){
+                else if(contenitore[i] == "LoginUsr"){
                     /* ZONA QUERY SQL LOGIN */
-                    
                     var con = mysql.createConnection({
                         host: "127.0.0.1",
                         user: "root",
@@ -1304,10 +1246,8 @@ var serverHTTP = http.createServer((req,res) =>{
                     });
                       
                 }
-                
             }
         });
-
     }
 
 }).listen(port);

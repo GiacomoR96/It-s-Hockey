@@ -1,16 +1,11 @@
-console.log("Avvio processo socket!!");
+console.log("Avvio processo socketServer..");
 var express = require('express');
 var app = express();
-var EventEmitter = require('events').EventEmitter;          // Forse
+var EventEmitter = require('events').EventEmitter;
 var logger = new EventEmitter();
 var port = 8081;
-var logs = require("./log");
 var http = require('http');
 var usersSocket = [];
-//var LIMIT = 8;
-
-                                                                                /* 
-                                                                                const stringifyObject = require('stringify-object'); */
 var serverWebSocket = http.createServer(app);
 
 var listener = require('socket.io')(serverWebSocket);
@@ -19,60 +14,10 @@ listener.listen(8081, function(){
     console.log("socketServer sono in ascolto sulla porta " + listener.address().port); 
 });
 
-//Forse da togliere
-logger.on("info", (message) =>{
-    logs.info(message);
-});
-
-logger.on("error", (message) =>{
-    logs.error(message);
-});
-
-
-/*      DA FARE QUESTO CASO
-
-        
-        // SITUAZIONE DEL LOGIN TRAMITE DISCONNESSIONE
-
-        for(var i=0;i<clients_nickname.length;i++){
-            if(data.nickname == clients_nickname[i]){
-                clients[data.nickname] = oggettoDaSalvare;
-                var obj = clients[clients_nickname[i]];
-
-                obj.socket.emit("myPosition",dataClients[clients_nickname[i]]);
-
-                for(var i=0;i<clients_nickname.length;i++){
-                    if(data.nickname != clients_nickname[i]){
-                        obj.socket.emit("rivalPosition",dataClients[clients_nickname[i]]);
-                        i=clients_nickname.length;
-                    }
-                }
-
-                //(PASSAGGIO POSIZIONE PALLINA)
-
-                //(PASSAGGIO PUNTEGGIO PARTITA)
-                obj.socket.emit("refreshScoreGame",{nickname: clients_nickname[0], score:punteggioPartita[clients_nickname[0]]});
-                obj.socket.emit("refreshScoreGame",{nickname: clients_nickname[1], score:punteggioPartita[clients_nickname[1]]});
-                                
-                obj.socket.emit("start_game",{start:true});
-                obj.socket.emit("users_game", {users: clients_nickname});
-                
-                // FORSE RETURN
-                // return 0;
-            }
-        }
-
-*/
-
 listener.on("connection", (client) =>{
-    console.log("-----------------socketServer: Qualcuno ha mandato un messaggio sulla socket figlio!");
+    console.log("socketServer: Qualcuno ha mandato un messaggio sulla socket.");
     
-//    console.log("contenuto:\n",client);
-
-//    console.log("CONTENUTO=>",client);
-
     client.on("requestStartGame", (data) =>{
-            
         var oggettoDaSalvare = {
             socket : client,
             nickname: data.nickname,
@@ -81,11 +26,7 @@ listener.on("connection", (client) =>{
     
         console.log("Il giocatore ",data.nickname," ha mandato un messaggio sulla socket!");
         usersSocket[usersSocket.length] = oggettoDaSalvare;
-        
         process.send({event:"requestStartGame",nick:oggettoDaSalvare.nickname,stanza:oggettoDaSalvare.stanza});
-    
-        // Non è stato possibile mandare un intero riferimento al padre
-        //    process.send( JSON.stringify({socket: oggettoDaSalvare.socket, nickname: oggettoDaSalvare.nickname}) );
     });
 
     client.on("myPosition", (data) =>{
@@ -156,10 +97,8 @@ listener.on("connection", (client) =>{
 });
 
 process.on("message", (data) => {
-    
-    //  console.log("MSG MANDATO: \t",data);
+    console.log("Messaggio mandato: \t",data);
 
-    //Attraverso questo ciclo prendiamo il riferimento alla socket interessata
     var socketClient;
     for(var i=0;i<usersSocket.length;i++){
         if(data.nick===usersSocket[i].nickname){

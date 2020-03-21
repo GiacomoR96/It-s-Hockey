@@ -29,7 +29,6 @@
 	<link rel="stylesheet" href="css/style.css">
 	<!-- Modernizr JS -->
 	<script src="js/modernizr-2.6.2.min.js"></script>
-
 	</head>
 	<body>
 				
@@ -53,7 +52,6 @@
                         </ul>
                     </div>
                 </div>
-                
             </div>
         </nav>      
        
@@ -64,16 +62,13 @@
                     <div class=" text-center">
                         <div class="display-t">
                             <div class="display-tc animate-box" data-animate-effect="fadeIn">
-                                
                                 <div id="box-size" class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                                 <div class="row box-info-user">
+
                                     <ul>
                                         <li class="menu-item">Nickname: <span id="nick"></span></li>
-                                        
                                         <li class="menu-item">Livello: <span id="liv"></span> </li>
-                                                                            
                                         <li class="menu-item">Exp: <span id="ex"></span> </li> 
-                                        
                                     </ul>
                                 </div>
                                 </div>
@@ -137,20 +132,18 @@
                                     </div>
                                 </div>
                             
-                            <form method = "POST">
-                                <button type="submit" class="btn btn-default" style="margin-top:2%" name="PlayGame">Partita Casuale</button>
-                                <input type="hidden" class="btn btn-default" name="random"/>
-                            </form>
-                            
+                                <form method = "POST">
+                                    <button type="submit" class="btn btn-default" style="margin-top:2%" name="PlayGame">Partita Casuale</button>
+                                    <input type="hidden" class="btn btn-default" name="random"/>
+                                </form>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </header>
-    
-	</div>
 
+	</div>
 	
 	<!-- jQuery -->
 	<script src="js/jquery.min.js"></script>
@@ -167,12 +160,9 @@
         var _nick;
         var _liv;
         var _exp;
-        
         var elementsCookie = document.cookie.split('; ');
-        console.log("VAL_COOKIE->",elementsCookie);
         
         for(var i=0;i<elementsCookie.length;i++){
-        //    console.log("CONFRONTO->",elementsCookie[i],"--- substr->",elementsCookie[i].substr(0,4));
             if(elementsCookie[i].substr(0,4)=="nick"){
                 var tmp = elementsCookie[i].split('=');
                 var tmp = tmp[1].split(';');
@@ -188,20 +178,12 @@
                 var tmp = tmp[1].split(';');
                 _exp = tmp[0];
             }
-
         }
-
-        /* console.log("SONO NICK=",_nick);
-        console.log("SONO LIV=",_liv);
-        console.log("SONO EX=",_exp); */
 
         document.getElementById("nick").innerHTML = _nick;
         document.getElementById("liv").innerHTML = _liv;
         document.getElementById("ex").innerHTML = _exp;
-
     </script>
-
-
 
     <script>
         var _room1;
@@ -240,7 +222,6 @@
                     _room4 = true;
                 }
             }
-
             else if(elementsCookie[i].substr(0,10)=="namePlayer"){
                 var tmp = elementsCookie[i].split('=');
                 console.log(".....",tmp);
@@ -256,9 +237,7 @@
                     n[y]=name;
                     console.log("NAME:",y," ->",n[y]);
                 }
-    
             }
-
         }
 
         console.log("Val room1=",_room1);
@@ -316,7 +295,6 @@
             document.getElementById("room4").innerHTML = "STANZA VUOTA";
             document.getElementById("btn4").type = 'submit';
         }
-
     </script>
 
 	</body>
