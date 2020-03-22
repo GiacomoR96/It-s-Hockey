@@ -1,0 +1,134 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>It's Hockey!</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<!-- Animate.css -->
+	<link rel="stylesheet" href="css/animate.css">
+	<!-- Icomoon Icon Fonts-->
+	<link rel="stylesheet" href="css/icomoon.css">
+	<!-- Bootstrap  -->
+	<link rel="stylesheet" href="css/bootstrap.css">
+	<!-- Theme style  -->
+	<link rel="stylesheet" href="css/style.css">
+	<!-- Modernizr JS -->
+	<script src="js/modernizr-2.6.2.min.js"></script>
+
+	</head>
+	<body>
+
+	<div class="fh5co-loader"></div>    
+
+	<div id="page">
+		<nav class="fh5co-nav" role="navigation">	
+            <div class="container">
+                <div class="row"  style="text-align: center">	
+                    <div class="logo center-menu text-center" style="padding-bottom: 30px">
+                        <div id="fh5co-logo"><a href="#">It's Hockey!</a></div>
+                    </div> 
+                </div>
+            </div>
+		</nav>
+
+        <header id="fh5co-header" class="fh5co-cover" role="banner" style="background-image:url(images/img_bg_2.jpg); height:100%">
+            <div class="overlay"></div>
+            <div class="container display-space">
+                <div class="row">
+                    <div class=" text-center">
+                        <div class="display-space-top" >
+                            <div class="animate-box" data-animate-effect="fadeIn">
+                                <h1 style="color: black;" >Hai</h1><h1 style="margin-left:1%;margin-right:1%" id="result"></h1><h1>la partita!</h1> 
+                            </div>
+
+                            <div id="AAA" class="col-md-10 col-md-push-1">
+
+								<div id="border" class="fh5co-contact-info list-contact" style="border: 3px solid rgba(255, 255, 255, 0.8)">
+									<h4 id="textStat" style="color: rgba(255, 255, 0, 0.76)">Statistiche giocatore</h4>
+									<ul class="list-contact2">
+										<li><h2>Livello: <h3 id="liv">999</h3></h2></li>
+										<li><h2>Esperienza:<h3 id="esp_prev"></h3> <h3>(+</h3><h3 id="ex"></h3><h3>)</h3></h2></li>
+									</ul>
+								</div>
+
+								<form class="form-inline"  method="POST">
+									<div class="col-md-6 col-md-offset-3">
+										<div id="btnHome" class="form-group">
+											<button id="1" type="submit" class="btn btn-default" name="btnMainGame">Conferma</button>
+										
+										</div>
+									</div>
+								</form>
+                        	</div>
+
+                        </div>
+					</div>
+                </div>
+            </div>
+        </header>
+	</div>
+
+	<!-- jQuery -->
+	<script src="js/jquery.min.js"></script>
+	<!-- jQuery Easing -->
+	<script src="js/jquery.easing.1.3.js"></script>
+	<!-- Bootstrap -->
+	<script src="js/bootstrap.min.js"></script>
+	<!-- Waypoints -->
+	<script src="js/jquery.waypoints.min.js"></script>
+	<!-- Main -->
+	<script src="js/main.js"></script>
+
+	<script>
+		var _ex_prev;
+		var _liv;
+		var _exp;
+		var _result;
+		var _nick;
+
+		var elementsCookie = document.cookie.split('; ');
+		console.log("VAL_COOKIE->",elementsCookie);
+
+		for(var i=0;i<elementsCookie.length;i++){
+			if(elementsCookie[i].substr(0,8)=="esp_prev"){
+				var tmp = elementsCookie[i].split('=');
+				var tmp = tmp[1].split(';');
+				_ex_prev = tmp[0];
+			}
+			if(elementsCookie[i].substr(0,6)=="result"){
+				var tmp = elementsCookie[i].split('=');
+				var tmp = tmp[1].split(';');
+				_result = tmp[0];
+			}
+			else if(elementsCookie[i].substr(0,3)=="liv"){
+				var tmp = elementsCookie[i].split('=');
+				var tmp = tmp[1].split(';');
+				_liv = tmp[0];
+			}
+			else if(elementsCookie[i].substr(0,2)=="ex"){
+				var tmp = elementsCookie[i].split('=');
+				var tmp = tmp[1].split(';');
+				_exp = tmp[0];
+			}
+			else if(elementsCookie[i].substr(0,4)=="nick"){
+				var tmp = elementsCookie[i].split('=');
+				var tmp = tmp[1].split(';');
+				_nick = tmp[0];
+			}
+
+		}
+		_exp-=_ex_prev;
+
+		document.getElementById("result").innerHTML = _result;
+		document.getElementById("liv").innerHTML = _liv;
+		document.getElementById("esp_prev").innerHTML = _ex_prev;
+		document.getElementById("ex").innerHTML = _exp;
+
+		document.getElementById("1").setAttribute("value",_nick);
+	</script>
+
+	</body>
+</html>
