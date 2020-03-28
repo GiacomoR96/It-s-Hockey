@@ -6,6 +6,7 @@ var app = express();
 var nickname1;
 var nickname2;
 var id;
+var continueGame = true;
 
 var dataClients = [];
 var initialPositionClients = [400,700,400,700];
@@ -15,7 +16,14 @@ var punteggioFinale = 3;               //7
 var posBaseX = 400;
 var posBaseY = 450;
 
-function delayTime() {
+function delayMessage(event) {
+    setTimeout(function myTime() {
+        if(event == "continueGame") continueGame = true;
+        process.send({id:id, event:event});
+    }, 4000);
+}
+
+function resetServer() {
     setTimeout(function myTime(){
         reset();
         process.send({id:id,event:"stopServerGame"});
@@ -32,7 +40,6 @@ reset = () => {
 }
 
 process.on("message", (data) => {
-    
     switch(data.event){
         case "id": {
             id = data.indice;
@@ -100,7 +107,6 @@ process.on("message", (data) => {
             }
             break;
         }
-        
         case "puckPosition": {
             // Gestione della specularita' del puck
             var name = (data.nick == nickname1) ? nickname2 : nickname1;
@@ -151,37 +157,33 @@ process.on("message", (data) => {
             break;
         }
         case "goalSuffered": {
-            var i = (data.nick == nickname1) ? 1 : 0;
-            punteggioPartita[i]+=1;
+            if(continueGame) {
+                continueGame = false;
+                var i = (data.nick == nickname1) ? 1 : 0;
+                punteggioPartita[i]+=1;
 
-            // Giocatore che ha subito il gol (VANTAGGIO DI POSIZIONE)
-            
-            process.send({id:id,nick:nickname1,event:"refreshScoreGame",data: [nickname1, punteggioPartita[0]]});
-            process.send({id:id,nick:nickname1,event:"refreshScoreGame",data: [nickname2, punteggioPartita[1]]});
+                // Giocatore che ha subito il gol (VANTAGGIO DI POSIZIONE)
+                process.send({id:id, nick:nickname1, event:"refreshScoreGame", data: { scorePlayer: punteggioPartita[0], scoreRival: punteggioPartita[1] }});
+                // Giocatore che ha segnato il gol
+                process.send({id:id, nick:nickname2, event:"refreshScoreGame", data: { scorePlayer: punteggioPartita[1], scoreRival: punteggioPartita[0] }});
 
-            // Giocatore che ha segnato il gol
-            process.send({id:id,nick:nickname2,event:"refreshScoreGame",data: [nickname1, punteggioPartita[0]]});
-            process.send({id:id,nick:nickname2,event:"refreshScoreGame",data: [nickname2, punteggioPartita[1]]});
-            
-            if(punteggioPartita[0] >= punteggioFinale || punteggioPartita[1] >= punteggioFinale){
-                process.send({id:id,nick:nickname1,event:"finishGame"});
-                process.send({id:id,nick:nickname2,event:"finishGame"});
+                if(punteggioPartita[0] >= punteggioFinale || punteggioPartita[1] >= punteggioFinale){
+                    process.send({id:id, event:"updateDataDB", nick1:nickname1, nick2:nickname2, winner: punteggioPartita[1]>punteggioPartita[0] ? nickname2 : nickname1});
+                    delayMessage("finishGame");
+                    resetServer();
+                }
+                else {
+                    var name="";
+                    name = (data.nick==nickname1) ? nickname1 : nickname2;
+                    process.send({id:id, nick:name, event:"setPositionPuck", data:[400,650]});
+                    
+                    name = (data.nick==nickname1)?nickname2:nickname1;
+                    process.send({id:id, nick:name, event:"setPositionPuck", data:[400,250]});
                 
-                process.send({id:id,event:"updateDataDB",nick1:nickname1,nick2:nickname2,winner:punteggioPartita[1]>punteggioPartita[0] ? nickname2 : nickname1});
-                
-                delayTime();
-            }
-            else{
-                var name="";
-                name = (data.nick==nickname1)?nickname1:nickname2;
-                process.send({id:id,nick:name,event:"setPositionPuck",data:[400,650]});
-                
-                name = (data.nick==nickname1)?nickname2:nickname1;
-                process.send({id:id,nick:name,event:"setPositionPuck",data:[400,250]});    
+                    delayMessage("continueGame");
+                }
             }
             break;
         }
-    
     }
-
 });

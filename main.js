@@ -20,7 +20,7 @@ var pointWinner=7;
 var pointLoser=3;
 
 for(var i=0;i<4;i++) {
-    serverGame[i] = fork("serverGame.js");      
+    serverGame[i] = fork("serverGame.js");
 }
 
 var usersConnected = [];
@@ -303,252 +303,72 @@ updateStatPlayers = (data) =>{
     console.log("PADRE [Partita conclusa] -  Salvataggio dati di serverGame[",data.id,"] effettuato!");
 }
 
-serverGame[0].on("message", (data) =>{
-    switch(data.event){
-        case "myPosition":{
-            child_process.send(data);
-            break;
-        }
-        case "rivalPosition":{
-            child_process.send(data);
-            break;
-        }
-        case "moveRivalPosition":{
-            child_process.send(data);
-            break;
-        }
-        case "positionBall":{
-            child_process.send(data);
-            break;
-        }
-        case "users_game":{
-            child_process.send(data);
-            break;
-        }
-        case "setIDPorta":{
-            child_process.send(data);
-            break;
-        }
-        case "start_game":{
-            child_process.send(data);
-            break;
-        }
-        case "finishGame":{
-            child_process.send(data);
-            break;
-        }
-        case "refreshScoreGame":{
-            child_process.send(data);
-            break;
-        }
-        case "puckPosition":{
-            child_process.send(data);
-            break;
-        }
-        case "updateDataDB":{
-            updateStatPlayers(data);
-        }
-        case "setPositionPuck":{
-            child_process.send(data);
-            break;
-        }
-        case "stopServerGame":{
-            console.log("PADRE - RESET FIGLIO EFFETTUATO, pos:",data.id);
-            countUsers[data.id] = 0;
-            for(var i=0; i < usersPlayGame.length;) {
-                if(usersPlayGame[i].stanza==(data.id)+1)   usersPlayGame.splice(i,1);
-                else i++;
+serverGame.forEach( server => {
+    server.on("message", (data) =>{
+        switch(data.event){
+            case "myPosition":{
+                child_process.send(data);
+                break;
             }
-            room[data.id] = false;
-            instanceServerUsers.splice(data.id,1);
-        }
-    }
-});
-
-serverGame[1].on("message", (data) =>{
-    switch(data.event){
-        case "myPosition":{
-            child_process.send(data);
-            break;
-        }
-        case "rivalPosition":{
-            child_process.send(data);
-            break;
-        }
-        case "moveRivalPosition":{
-            child_process.send(data);
-            break;
-        }
-        case "positionBall":{
-            child_process.send(data);
-            break;
-        }
-        case "users_game":{
-            child_process.send(data);
-            break;
-        }
-        case "setIDPorta":{
-            child_process.send(data);
-            break;
-        }
-        case "start_game":{
-            child_process.send(data);
-            break;
-        }
-        case "finishGame":{
-            child_process.send(data);
-            break;
-        }
-        case "refreshScoreGame":{
-            child_process.send(data);
-            break;
-        }
-        case "puckPosition":{
-            child_process.send(data);
-            break;
-        }
-        case "updateDataDB":{
-            updateStatPlayers(data);
-        }
-        case "setPositionPuck":{
-            child_process.send(data);
-            break;
-        }
-        case "stopServerGame":{
-            console.log("PADRE - RESET FIGLIO EFFETTUATO, pos:",data.id);
-            countUsers[data.id] = 0;
-            for(var i=0; i < usersPlayGame.length;) {
-                if(usersPlayGame[i].stanza==(data.id)+1)   usersPlayGame.splice(i,1);
-                else i++;
+            case "rivalPosition":{
+                child_process.send(data);
+                break;
             }
-            room[data.id] = false;
-            instanceServerUsers.splice(data.id,1);
-        }
-    }
-});
-
-serverGame[2].on("message", (data) =>{
-    switch(data.event){
-        case "myPosition":{
-            child_process.send(data);
-            break;
-        }
-        case "rivalPosition":{
-            child_process.send(data);
-            break;
-        }
-        case "moveRivalPosition":{
-            child_process.send(data);
-            break;
-        }
-        case "positionBall":{
-            child_process.send(data);
-            break;
-        }
-        case "users_game":{
-            child_process.send(data);
-            break;
-        }
-        case "setIDPorta":{
-            child_process.send(data);
-            break;
-        }
-        case "start_game":{
-            child_process.send(data);
-            break;
-        }
-        case "finishGame":{
-            child_process.send(data);
-            break;
-        }
-        case "refreshScoreGame":{
-            child_process.send(data);
-            break;
-        }
-        case "puckPosition":{
-            child_process.send(data);
-            break;
-        }
-        case "updateDataDB":{
-            updateStatPlayers(data);
-        }
-        case "setPositionPuck":{
-            child_process.send(data);
-            break;
-        }
-        case "stopServerGame":{
-            console.log("PADRE - RESET FIGLIO EFFETTUATO, pos:",data.id);
-            countUsers[data.id]=0;
-            for(var i=0;i<usersPlayGame.length;){
-                if (usersPlayGame[i].stanza == (data.id)+1)   usersPlayGame.splice(i,1);
-                else i++;
+            case "moveRivalPosition":{
+                child_process.send(data);
+                break;
             }
-            room[data.id] = false;
-            instanceServerUsers.splice(data.id,1);
-        }
-    }
-});
-
-serverGame[3].on("message", (data) =>{
-    switch(data.event){
-        case "myPosition":{
-            child_process.send(data);
-            break;
-        }
-        case "rivalPosition":{
-            child_process.send(data);
-            break;
-        }
-        case "moveRivalPosition":{
-            child_process.send(data);
-            break;
-        }
-        case "positionBall":{
-            child_process.send(data);
-            break;
-        }
-        case "users_game":{
-            child_process.send(data);
-            break;
-        }
-        case "setIDPorta":{
-            child_process.send(data);
-            break;
-        }
-        case "start_game":{
-            child_process.send(data);
-            break;
-        }
-        case "finishGame":{
-            child_process.send(data);
-            break;
-        }
-        case "refreshScoreGame":{
-            child_process.send(data);
-            break;
-        }
-        case "puckPosition":{
-            child_process.send(data);
-            break;
-        }
-        case "updateDataDB":{
-            updateStatPlayers(data);
-        }
-        case "setPositionPuck":{
-            child_process.send(data);
-            break;
-        }
-        case "stopServerGame":{
-            console.log("PADRE - RESET FIGLIO EFFETTUATO, pos:",data.id);
-            countUsers[data.id] = 0;
-            for(var i=0; i < usersPlayGame.length;) {
-                if (usersPlayGame[i].stanza == (data.id)+1)   usersPlayGame.splice(i,1);
-                else i++;
+            case "positionBall":{
+                child_process.send(data);
+                break;
             }
-            room[data.id] = false;
-            instanceServerUsers.splice(data.id,1);
+            case "users_game":{
+                child_process.send(data);
+                break;
+            }
+            case "setIDPorta":{
+                child_process.send(data);
+                break;
+            }
+            case "start_game":{
+                child_process.send(data);
+                break;
+            }
+            case "finishGame":{
+                child_process.send(data);
+                break;
+            }
+            case "refreshScoreGame":{
+                child_process.send(data);
+                break;
+            }
+            case "puckPosition":{
+                child_process.send(data);
+                break;
+            }
+            case "updateDataDB":{
+                updateStatPlayers(data);
+            }
+            case "setPositionPuck":{
+                child_process.send(data);
+                break;
+            }
+            case "continueGame":{
+                child_process.send(data);
+                break;
+            }
+            case "stopServerGame":{
+                console.log("PADRE - RESET FIGLIO EFFETTUATO, pos:",data.id);
+                countUsers[data.id] = 0;
+                for(var i=0; i < usersPlayGame.length;) {
+                    if(usersPlayGame[i].stanza==(data.id)+1)   usersPlayGame.splice(i,1);
+                    else i++;
+                }
+                room[data.id] = false;
+                instanceServerUsers.splice(data.id,1);
+            }
         }
-    }
+    });
 });
 
 var serverHTTP = http.createServer((req,res) =>{
@@ -679,99 +499,36 @@ var serverHTTP = http.createServer((req,res) =>{
             res.end();
             });
         }
-        else if(req.url.indexOf('lineRed.png') != -1){ 
+        else if(req.url.indexOf('borderLeft.png') != -1){ 
 
-            fs.readFile(__dirname + '/www/img/lineRed.png', function (err, data) {
+            fs.readFile(__dirname + '/www/img/borderLeft.png', function (err, data) {
             if (err) console.log(err);
             res.writeHead(200, {'Content-Type': 'text/html'});
             res.write(data);
             res.end();
             });
         }
-        else if(req.url.indexOf('lineRedsmall.png') != -1){ 
+        else if(req.url.indexOf('borderTop.png') != -1){ 
 
-            fs.readFile(__dirname + '/www/img/lineRedSmall.png', function (err, data) {
+            fs.readFile(__dirname + '/www/img/borderTop.png', function (err, data) {
             if (err) console.log(err);
             res.writeHead(200, {'Content-Type': 'text/html'});
             res.write(data);
             res.end();
             });
         }
-        else if(req.url.indexOf('lineGreen.png') != -1){ 
+        else if(req.url.indexOf('borderRight.png') != -1){ 
 
-            fs.readFile(__dirname + '/www/img/lineGreen.png', function (err, data) {
+            fs.readFile(__dirname + '/www/img/borderRight.png', function (err, data) {
             if (err) console.log(err);
             res.writeHead(200, {'Content-Type': 'text/html'});
             res.write(data);
             res.end();
             });
         }
-        else if(req.url.indexOf('lineGreenSmall.png') != -1){ 
+        else if(req.url.indexOf('borderBottom.png') != -1){ 
 
-            fs.readFile(__dirname + '/www/img/lineGreenSmall.png', function (err, data) {
-            if (err) console.log(err);
-            res.writeHead(200, {'Content-Type': 'text/html'});
-            res.write(data);
-            res.end();
-            });
-        }
-        else if(req.url.indexOf('lineYellow.png') != -1){ 
-
-            fs.readFile(__dirname + '/www/img/lineYellow.png', function (err, data) {
-            if (err) console.log(err);
-            res.writeHead(200, {'Content-Type': 'text/html'});
-            res.write(data);
-            res.end();
-            });
-        }
-        else if(req.url.indexOf('lineYellowSmall.png') != -1){ 
-
-            fs.readFile(__dirname + '/www/img/lineYellowSmall.png', function (err, data) {
-            if (err) console.log(err);
-            res.writeHead(200, {'Content-Type': 'text/html'});
-            res.write(data);
-            res.end();
-            });
-        }
-        else if(req.url.indexOf('lineBlue.png') != -1){ 
-
-            fs.readFile(__dirname + '/www/img/lineBlue.png', function (err, data) {
-            if (err) console.log(err);
-            res.writeHead(200, {'Content-Type': 'text/html'});
-            res.write(data);
-            res.end();
-            });
-        }
-        else if(req.url.indexOf('lineBlueSmall.png') != -1){ 
-
-            fs.readFile(__dirname + '/www/img/lineBlueSmall.png', function (err, data) {
-            if (err) console.log(err);
-            res.writeHead(200, {'Content-Type': 'text/html'});
-            res.write(data);
-            res.end();
-            });
-        }
-        else if(req.url.indexOf('lineCyan.png') != -1){ 
-
-            fs.readFile(__dirname + '/www/img/lineCyan.png', function (err, data) {
-            if (err) console.log(err);
-            res.writeHead(200, {'Content-Type': 'text/html'});
-            res.write(data);
-            res.end();
-            });
-        }
-        else if(req.url.indexOf('lineCyanSmall.png') != -1){ 
-
-            fs.readFile(__dirname + '/www/img/lineCyanSmall.png', function (err, data) {
-            if (err) console.log(err);
-            res.writeHead(200, {'Content-Type': 'text/html'});
-            res.write(data);
-            res.end();
-            });
-        }
-        else if(req.url.indexOf('porta.png') != -1){ 
-
-            fs.readFile(__dirname + '/www/img/porta.png', function (err, data) {
+            fs.readFile(__dirname + '/www/img/borderBottom.png', function (err, data) {
             if (err) console.log(err);
             res.writeHead(200, {'Content-Type': 'text/html'});
             res.write(data);
@@ -960,15 +717,6 @@ var serverHTTP = http.createServer((req,res) =>{
         }
 
 
-        /*
-        else if(req.url.indexOf('prova.css') != -1){
-            fs.readFile(__dirname + './prova.css', function (err, data) {
-                if (err) console.log(err);
-                res.writeHead(200, {'Content-Type': 'text/css'});
-                res.write(data);
-                res.end();
-            });
-        } */
         else if(req.url.indexOf('css/animate.css') != -1){
             fs.readFile(__dirname + '/css/animate.css', function (err, data) {
                 if (err) console.log(err);
@@ -1201,7 +949,7 @@ var serverHTTP = http.createServer((req,res) =>{
                         fs.createReadStream("./mainGame.html", "UTF-8").pipe(res);
                     }                    
                 }
-                else if(contenitore[i]=="ENDGame"){
+                else if(contenitore[i]=="FinishGame"){
                     /* Evento fine partita */
                     var ris="perso";
                     var nick=contenitore[2];
@@ -1237,7 +985,7 @@ var serverHTTP = http.createServer((req,res) =>{
                             
                             res.setHeader('Set-Cookie', ['result='+ris+'','liv='+liv+'','ex='+exp+'']);
                             res.writeHead(200, { "Content-Type": "text/html" });
-                            fs.createReadStream("./ENDGame.html", "UTF-8").pipe(res);
+                            fs.createReadStream("./FinishGame.html", "UTF-8").pipe(res);
                         }
                     }
                     });

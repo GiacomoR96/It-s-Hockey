@@ -10,6 +10,14 @@ var serverWebSocket = http.createServer(app);
 
 var listener = require('socket.io')(serverWebSocket);
 
+function sendMessage(data) {
+    usersSocket.forEach(user => {
+        if(user.stanza == (data.id)+1) {
+            user.socket.emit(data.event,data.data);
+        }
+    });
+}
+
 listener.listen(8081, function(){
     console.log("socketServer sono in ascolto sulla porta " + listener.address().port); 
 });
@@ -140,7 +148,7 @@ process.on("message", (data) => {
             break;
         }
         case "finishGame":{
-            socketClient.emit(data.event);
+            sendMessage(data);
             break;
         }
         case "refreshScoreGame":{
@@ -149,6 +157,10 @@ process.on("message", (data) => {
         }
         case "setPositionPuck":{
             socketClient.emit(data.event,data.data);
+            break;
+        }
+        case "continueGame":{
+            sendMessage(data);
             break;
         }
     }

@@ -1,10 +1,15 @@
 var app = {
+    ball : {
+        posX : null,
+        posY : null,
+        lastMovement : false
+    },
     player : {
         nickname : null,
         posX : null,
         posY : null,
-        score : 0,
-        idPorta : null
+        idPorta : null,
+        score : 0
     },
     rival : {
         nickname : null,
@@ -12,42 +17,31 @@ var app = {
         posY : null,
         score : 0
     },
-    ball : {
-        posX : null,
-        posY : null,
-        lastMovement : false
-    },
     system : {
         textEndGame : null,
         textGol : null,
-        finishGame : false,
         textScore : null,
-        refreshScore : false,
-        delayRespawn : 3000,
         stanza : null,
+        delayFinishGame : 3000,
+        finishGame : false,
         continueGame : false,
-        isWaiting : false,
-
+        refreshScore : false
     }
 };
 var socket = io('http://127.0.0.1:8081');
-var puck;
 
-function delayTime() {
-    app.system.isWaiting = true;
-    setTimeout(function myTime() {
-        if(app.system.finishGame == true) {
-            resocontoPartita("","ENDGame",app.player.nickname);
-        }
-        else{
-            app.system.continueGame = true;
-        }
-    },app.system.delayRespawn);
-}
+// Oggetti grafici Phaser
+var puck;
+var graphips;
+var strikerRival;
+var strikerPlayer;
+var border = [];
+var colorBorder = ['borderLeft','borderTop','borderRight','borderBottom'];
+var positionBorderX = [18,400,785,400];
+var positionBorderY = [450,10,450,890];
 
 function resetAction() {
     app.system.continueGame = false;
-    app.system.isWaiting = false;
     app.ball.lastMovement = false;
 }
 
@@ -114,6 +108,10 @@ socket.on("setPositionPuck", (data) =>{
     app.ball.posY=data[1];
 });
 
+socket.on("continueGame", (data) =>{
+    app.system.continueGame = true;
+});
+
 socket.on("puckPosition", (data) =>{
     app.ball.lastMovement=false;
     app.ball.posX=data[0];
@@ -125,12 +123,8 @@ socket.on("setIDPorta", (data) =>{
 });
 
 socket.on("refreshScoreGame", (data) =>{
-    if(data[0] == app.player.nickname){
-        app.player.score = data[1];
-    }
-    else{
-        app.rival.score = data[1];
-    }
+    app.player.score = data.scorePlayer;
+    app.rival.score = data.scoreRival;
     app.system.refreshScore = true;
 });
 
@@ -142,6 +136,7 @@ socket.on("start_game", () => {
 
 socket.on("finishGame", () =>{
     app.system.finishGame=true;
+    setTimeout(() => resocontoPartita( "", "FinishGame", app.player.nickname), app.system.delayFinishGame);
 });
 
 inizio = (data) => {
@@ -162,39 +157,15 @@ inizio = (data) => {
             update: update
         }
     }
-
-    var graphips;
-    var game = new Phaser.Game(config);
-
-    var strikerRival;
-    var strikerPlayer;
-    var porta1;
-    var porta2;
-    var border = [];
-    var colorBorder = ['lineRed','lineRedSmall','lineGreen','lineGreenSmall','lineYellow','lineYellowSmall','lineBlue','lineBlueSmall'];
-    var positionBorderX = [18,175,785,620,18, 180,785,620];
-    var positionBorderY = [225,10,225,10,675, 890,675,890];
+    new Phaser.Game(config);
 
     // Funzione di caricamento delle immagini all'interno il gioco
     function preload() {
         this.load.image('background', "Sfondo_.png");
-
-        this.load.image('lineRed', "lineRed.png");
-        this.load.image('lineRedSmall', "lineRedsmall.png");
-
-        this.load.image('lineGreen', "lineGreen.png");
-        this.load.image('lineGreenSmall', "lineGreenSmall.png");
-        
-        this.load.image('lineYellow', "lineYellow.png");
-        this.load.image('lineYellowSmall', "lineYellowSmall.png");
-        
-        this.load.image('lineBlue', "lineBlue.png");
-        this.load.image('lineBlueSmall', "lineBlueSmall.png");
-        
-        this.load.image('lineCyan', "lineCyan.png");
-        this.load.image('lineCyanSmall', "lineCyanSmall.png");
-        
-        this.load.image('porta',"porta.png");
+        this.load.image('borderLeft', "borderLeft.png");
+        this.load.image('borderTop', "borderTop.png");
+        this.load.image('borderRight', "borderRight.png");
+        this.load.image('borderBottom', "borderBottom.png");
 
         this.load.image('strikerRival',"striker.png");
         this.load.image('strikerPlayer',"striker.png");
@@ -209,7 +180,7 @@ inizio = (data) => {
         this.image = this.add.image(400,450,'background');
 
         // Creazione dei bordi
-        for(var i=0;i<8;i++){
+        for(var i=0;i<4;i++){
             border[i] = this.physics.add.sprite(positionBorderX[i],positionBorderY[i],colorBorder[i]);
 
             border[i].setDataEnabled();
@@ -217,13 +188,6 @@ inizio = (data) => {
             border[i].data.set('number',i);
             border[i].setImmovable();
         }
-
-        porta1 = this.physics.add.sprite(402,3,'porta');
-        porta1.setImmovable();
-        porta1.setVisible(false);
-        porta2 = this.physics.add.sprite(402,898,'porta');
-        porta2.setImmovable();
-        porta2.setVisible(false);
 
         app.system.textGol = this.add.text(290, 410, "Goal!", { font: '75px Courier', fill: '#000000' });
         app.system.textGol.setVisible(false);
@@ -234,7 +198,7 @@ inizio = (data) => {
         app.system.textScore.angle = -90;
 
         // Inizializzazione Striker1
-        strikerRival = this.physics.add.sprite(app.rival.posX,app.rival.posY,'strikerRival').setInteractive({ draggable: true});
+        strikerRival = this.physics.add.sprite(app.rival.posX,app.rival.posY,'strikerRival');
         strikerRival.body.setCircle(40);
 
         // Qui inizializziamo Striker2 e lo rendiamo trascinabile
@@ -264,13 +228,21 @@ inizio = (data) => {
         puck.body.setBounce(1,1);
         puck.body.collideWorldBounds = true;
         this.physics.add.collider(puck, border);
+        this.physics.add.collider(puck, strikerPlayer);
 
         graphics = this.add.graphics(0,0);
     }
 
+    function goal(puck) {
+        app.ball.lastMovement=false;
+        puck.destroy();
+        app.system.textGol.setVisible(true);
+        //puck.setVisible(false);
+    }
+
     function update(){
-        if(app.ball.lastMovement){
-            socket.emit("puckPosition",{nickname:app.player.nickname,
+        if(app.ball.lastMovement) {
+            socket.emit("puckPosition", {nickname: app.player.nickname,
                 data:[puck.x, puck.y]
             });
             puck.setVelocity((puck.body.velocity.x) * 0.997, (puck.body.velocity.y) * 0.997);   // Decremento velocità di 3 millesimi a ciclo di update
@@ -294,27 +266,25 @@ inizio = (data) => {
             var diffX = 0;
             var diffY = 0;
             if (puck.x < strikerPlayer.x && puck.y < strikerPlayer.y)       // pallina in alto a sinistra
-            {   console.log("111111111111");
-                //  Ball is on the left-hand side of the paddle
+            {
                 diffX = strikerPlayer.x - puck.x;
                 diffY = strikerPlayer.y - puck.y;
                 puck.setVelocity(-10 * diffX, -10 * diffY);
             }
             else if (puck.x > strikerPlayer.x && puck.y < strikerPlayer.y)  // pallina in alto a destra
-            {console.log("222222222222");
-                //  Ball is on the right-hand side of the paddle
+            {
                 diffX = strikerPlayer.x -puck.x;
                 diffY = strikerPlayer.y -puck.y;
                 puck.setVelocity(-10 * diffX, -10 * diffY);
             }
             else if (puck.x < strikerPlayer.x && puck.y > strikerPlayer.y)  // pallina in basso a sinistra
-            {   console.log("♥♥♥");
+            {
                 diffX = strikerPlayer.x - puck.x;
                 diffY = strikerPlayer.y - puck.y;
                 puck.setVelocity(-10 * diffX, -10 * diffY);
             }
             else if (puck.x > strikerPlayer.x && puck.y > strikerPlayer.y)  // pallina in basso a destra
-            {   console.log("♪♪♪♪♪♪♪♪♪♪♪♪♪")
+            {
                 diffX = strikerPlayer.x -puck.x;
                 diffY = strikerPlayer.y -puck.y;
                 puck.setVelocity(-10 * diffX, -10 * diffY);
@@ -325,33 +295,26 @@ inizio = (data) => {
                     data:[puck.x, puck.y]
                 });
                 app.ball.lastMovement=true;
-            }           
+            }
         });
 
-        // Collisione puck con porta1
-        this.physics.collide(puck, porta1, ()=>{
-            app.ball.lastMovement=false;
-            puck.destroy();
-            app.system.textGol.setVisible(true);
-            puck.setVisible(false);
-            delayTime();
-        });
+        // Zona porta del rivale
+        if(puck.x >346 && puck.x<455 && puck.y>0 && puck.y<45) {
+            goal(puck);
+        }
 
-        // Collisione puck con porta2
-        this.physics.collide(puck, porta2, ()=> {
-            app.ball.lastMovement=false;
-            puck.destroy();
-            app.system.textGol.setVisible(true);
-            puck.setVisible(false);
+        // Zona porta del player
+        if(puck.x >346 && puck.x<455 && puck.y>855 && puck.y<900) {
+            goal(puck);
             socket.emit("goalSuffered", {nickname:app.player.nickname});
-            delayTime();
-        });
+        }
 
-        if(app.system.finishGame){
+        if(app.system.finishGame) {
+            app.system.textGol.setVisible(false);
             app.system.textEndGame.setVisible(true);
         }
 
-        if(app.system.continueGame && app.system.isWaiting) { 
+        if(app.system.continueGame) { 
             resetAction();
             app.system.textGol.setVisible(false);
 
@@ -359,8 +322,8 @@ inizio = (data) => {
             puck.body.setCircle(20);
             puck.body.setBounce(1,1);
             puck.body.collideWorldBounds = true;
-            this.physics.add.collider(puck, strikerPlayer);     // TODO : Valutare se da eliminare
             this.physics.add.collider(puck, border);
+            this.physics.add.collider(puck, strikerPlayer);
         }
     }
 }
