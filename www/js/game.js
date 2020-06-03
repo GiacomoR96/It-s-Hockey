@@ -18,6 +18,7 @@ var app = {
         score : 0
     },
     system : {
+        fontPlayer: 15,
         textEndGame : null,
         textGol : null,
         textScore : null,
@@ -28,7 +29,7 @@ var app = {
         refreshScore : false
     }
 };
-var socket = io('http://127.0.0.1:8081');
+var socket = io.connect('http://localhost:8081');
 
 // Oggetti grafici Phaser
 var puck;
@@ -45,110 +46,89 @@ function resetAction() {
     app.ball.lastMovement = false;
 }
 
-var elementsCookie = document.cookie.split('; ');
-
-for(var i=0;i<elementsCookie.length;i++){
-    if(elementsCookie[i].substr(0,4)=="nick"){
-        var tmp = elementsCookie[i].split('=');
-        var tmp = tmp[1].split(';');
-        app.player.nickname = tmp[0];
-    }
-    if(elementsCookie[i].substr(0,10)=="selectRoom"){
-        var tmp = elementsCookie[i].split('=');
-        var tmp = tmp[1].split(';');
-        app.system.stanza = tmp[0];
-    }
+function setCookie(nameParams, paramsValue) {
+    var d = new Date();
+    d.setTime(d.getTime() + (1*24*60*60*1000));
+    var expires = "expires="+ d.toUTCString();
+    document.cookie = nameParams + "=" + paramsValue + ";" + expires + ";";
 }
 
-function resocontoPartita(path, nameURL, param,method){
-    method = "post";
-    
-    var form = document.createElement("form");
-    form.setAttribute("method", method);
-
-    var hiddenField = document.createElement("input");
-    hiddenField.setAttribute("type", "hidden");
-    hiddenField.setAttribute("name", nameURL);
-
-    form.appendChild(hiddenField);
-
-    var hiddenField2 = document.createElement("input");
-    hiddenField2.setAttribute("type", "hidden");
-    hiddenField2.setAttribute("name", param);
-
-    form.appendChild(hiddenField2);
-
-    document.body.appendChild(form);
-    form.submit();
-}
-
-socket.emit("requestStartGame", { nickname:app.player.nickname, stanza:app.system.stanza });
-
-socket.on("users_game", (data) =>{
-    app.rival.nickname=data.rival;
+socket.emit('updateSocket', $.cookie('key')).on('updateSocket', function() {
+    app.player.nickname = $.cookie('key');
+    socket.emit('requestStartGame');
 });
 
-socket.on("myPosition", (data) =>{
-    app.player.posX = data.posX;
-    app.player.posY = data.posY;
+socket.on('redirect', function(destination) {
+    var key = Object.keys(destination)[1];
+    var value = Object.values(destination);
+    if (key == 'key') {
+        setCookie(key, value[1]);
+    }
+    else if (key == 'message') {
+        setCookie(key, value[1]);
+    }
+    window.location.replace(value[0]);
 });
 
-socket.on("rivalPosition", (data) =>{
-    app.rival.posX = data.posX;
-    app.rival.posY = data.posY;
+socket.on('rivalData', (data) => {
+    app.rival.nickname = data.nickname;
+    app.rival.posX = data.position.posX;
+    app.rival.posY = data.position.posY;
 });
 
-socket.on("moveRivalPosition", (data) =>{
+socket.on('myPosition', (data) => {
+    app.player.posX = data[0];
+    app.player.posY = data[1];
+});
+
+socket.on('moveRivalPosition', (data) => {
     app.rival.posX = data[0];
     app.rival.posY = data[1]; 
 });
 
-socket.on("setPositionPuck", (data) =>{
+socket.on('setPositionPuck', (data) => {
     app.ball.posX=data[0];
     app.ball.posY=data[1];
 });
 
-socket.on("continueGame", (data) =>{
+socket.on('continueGame', () => {
     app.system.continueGame = true;
 });
 
-socket.on("puckPosition", (data) =>{
+socket.on('puckPosition', (data) => {
     app.ball.lastMovement=false;
     app.ball.posX=data[0];
     app.ball.posY=data[1];
 });
 
-socket.on("setIDPorta", (data) =>{
-    app.player.idPorta = data.idPorta;
-});
-
-socket.on("refreshScoreGame", (data) =>{
+socket.on('refreshScoreGame', (data) => {
     app.player.score = data.scorePlayer;
     app.rival.score = data.scoreRival;
     app.system.refreshScore = true;
 });
 
-socket.on("start_game", () => {    
-    console.log("Inizia la partita! - Prelevo i dati necessarti per giocare...");
-    socket.emit("rivalPosition",{nickname:app.player.nickname,nickname_rival:app.rival.nickname});
-    inizio();
+socket.on('launchGame', () => {    
+    console.log('Inizia la partita!');
+    begin();
 });
 
-socket.on("finishGame", () =>{
-    app.system.finishGame=true;
-    setTimeout(() => resocontoPartita( "", "FinishGame", app.player.nickname), app.system.delayFinishGame);
+socket.on('finishGame', () => {
+    app.system.finishGame = true;
 });
 
-inizio = (data) => {
+function begin() {
     var config = {
         type:Phaser.AUTO,
         width:800,
         height:900,
         parent: 'campo',
+        dom: {
+            createContainer: true
+        },
         physics: {
             default: 'arcade',
             arcade: {
-                debug: true
+                debug: false
             },
         },
         scene: {
@@ -161,21 +141,18 @@ inizio = (data) => {
 
     // Funzione di caricamento delle immagini all'interno il gioco
     function preload() {
-        this.load.image('background', "Sfondo_.png");
-        this.load.image('borderLeft', "borderLeft.png");
-        this.load.image('borderTop', "borderTop.png");
-        this.load.image('borderRight', "borderRight.png");
-        this.load.image('borderBottom', "borderBottom.png");
+        this.load.image('background', "/www/img/Sfondo_.png");
+        this.load.image('borderLeft', "/www/img/borderLeft.png");
+        this.load.image('borderTop', "/www/img/borderTop.png");
+        this.load.image('borderRight', "/www/img/borderRight.png");
+        this.load.image('borderBottom', "/www/img/borderBottom.png");
 
-        this.load.image('strikerRival',"striker.png");
-        this.load.image('strikerPlayer',"striker.png");
-        this.load.image('puck',"puck.png");
+        this.load.image('strikerRival',"/www/img/striker.png");
+        this.load.image('strikerPlayer',"/www/img/striker.png");
+        this.load.image('puck',"/www/img/puck.png");
     }
 
     function create(){  
-        // Attraverso questo è possibile utilizzare il MultiTouch aggiungendo un puntatore (Poichè ne abbiamo uno di default)
-        // this.input.addPointer();
-
         // Settiamo lo sfondo del gioco
         this.image = this.add.image(400,450,'background');
 
@@ -198,13 +175,19 @@ inizio = (data) => {
         app.system.textScore.angle = -90;
 
         // Inizializzazione Striker1
-        strikerRival = this.physics.add.sprite(app.rival.posX,app.rival.posY,'strikerRival');
+        strikerRival = this.physics.add.sprite(app.rival.posX, app.rival.posY,'strikerRival');
         strikerRival.body.setCircle(40);
 
         // Qui inizializziamo Striker2 e lo rendiamo trascinabile
-        strikerPlayer = this.physics.add.sprite(app.player.posX,app.player.posY,'strikerPlayer').setInteractive({ draggable: true});
+        strikerPlayer = this.physics.add.sprite(app.player.posX, app.player.posY, 'strikerPlayer').setInteractive({ draggable: true});
         strikerPlayer.body.setCircle(40);
         strikerPlayer.body.setBounce(1,1);
+
+        var div = document.createElement('div');
+        div.style = `background-color: rgb(253, 175, 31); border-radius: 15px; height: 30px; padding: 0.5% 1%; font: ${app.system.fontPlayer}px Comic Sans MS; color: white; text-transform: uppercase`;
+        div.innerText = app.rival.nickname;
+
+        strikerRival.label = this.add.dom(app.rival.posX, app.rival.posY, div);
 
         // Tramite questa funzione è possibile trascinare lo striker con il cursore
         strikerPlayer.on('drag', function(pointer, dragX, dragY){
@@ -216,9 +199,8 @@ inizio = (data) => {
                 app.player.posY = dragY;
 
                 if(!app.system.finishGame){
-                    socket.emit("moveMyPosition", {nickname:app.player.nickname, x:app.player.posX, y:app.player.posY});
+                    socket.emit('moveMyPosition', {data: [app.player.posX, app.player.posY]});
                 }
-
             }
         });
         strikerPlayer.setImmovable();
@@ -237,14 +219,11 @@ inizio = (data) => {
         app.ball.lastMovement=false;
         puck.destroy();
         app.system.textGol.setVisible(true);
-        //puck.setVisible(false);
     }
 
     function update(){
         if(app.ball.lastMovement) {
-            socket.emit("puckPosition", {nickname: app.player.nickname,
-                data:[puck.x, puck.y]
-            });
+            socket.emit('puckPosition', {data: [puck.x, puck.y]});
             puck.setVelocity((puck.body.velocity.x) * 0.997, (puck.body.velocity.y) * 0.997);   // Decremento velocità di 3 millesimi a ciclo di update
         }
         else{
@@ -254,6 +233,8 @@ inizio = (data) => {
 
         strikerRival.x = app.rival.posX;
         strikerRival.y = app.rival.posY;
+        strikerRival.label.x = app.rival.posX;
+        strikerRival.label.y = Math.floor(app.rival.posY - 60);
 
         if(app.system.refreshScore){
             app.system.textScore.setVisible(false);
@@ -265,35 +246,29 @@ inizio = (data) => {
         this.physics.world.collide(puck, strikerPlayer, (data) => {
             var diffX = 0;
             var diffY = 0;
-            if (puck.x < strikerPlayer.x && puck.y < strikerPlayer.y)       // pallina in alto a sinistra
-            {
+            if (puck.x < strikerPlayer.x && puck.y < strikerPlayer.y) {      // pallina in alto a sinistra
                 diffX = strikerPlayer.x - puck.x;
                 diffY = strikerPlayer.y - puck.y;
                 puck.setVelocity(-10 * diffX, -10 * diffY);
             }
-            else if (puck.x > strikerPlayer.x && puck.y < strikerPlayer.y)  // pallina in alto a destra
-            {
+            else if (puck.x > strikerPlayer.x && puck.y < strikerPlayer.y) { // pallina in alto a destra
                 diffX = strikerPlayer.x -puck.x;
                 diffY = strikerPlayer.y -puck.y;
                 puck.setVelocity(-10 * diffX, -10 * diffY);
             }
-            else if (puck.x < strikerPlayer.x && puck.y > strikerPlayer.y)  // pallina in basso a sinistra
-            {
+            else if (puck.x < strikerPlayer.x && puck.y > strikerPlayer.y) { // pallina in basso a sinistra
                 diffX = strikerPlayer.x - puck.x;
                 diffY = strikerPlayer.y - puck.y;
                 puck.setVelocity(-10 * diffX, -10 * diffY);
             }
-            else if (puck.x > strikerPlayer.x && puck.y > strikerPlayer.y)  // pallina in basso a destra
-            {
+            else if (puck.x > strikerPlayer.x && puck.y > strikerPlayer.y) { // pallina in basso a destra
                 diffX = strikerPlayer.x -puck.x;
                 diffY = strikerPlayer.y -puck.y;
                 puck.setVelocity(-10 * diffX, -10 * diffY);
             }
 
             if(app.ball.lastMovement==false) {
-                socket.emit("puckPosition", {nickname: app.player.nickname,
-                    data:[puck.x, puck.y]
-                });
+                socket.emit('puckPosition', {data: [puck.x, puck.y]});
                 app.ball.lastMovement=true;
             }
         });
@@ -306,7 +281,7 @@ inizio = (data) => {
         // Zona porta del player
         if(puck.x >346 && puck.x<455 && puck.y>855 && puck.y<900) {
             goal(puck);
-            socket.emit("goalSuffered", {nickname:app.player.nickname});
+            socket.emit('goalSuffered');
         }
 
         if(app.system.finishGame) {

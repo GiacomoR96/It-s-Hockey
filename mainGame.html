@@ -6,19 +6,9 @@
 	<title>It's Hockey!</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 
-	<meta property="og:title" content=""/>
-	<meta property="og:image" content=""/>
-	<meta property="og:url" content=""/>
-	<meta property="og:site_name" content=""/>
-	<meta property="og:description" content=""/>
-	<meta name="twitter:title" content="" />
-	<meta name="twitter:image" content="" />
-	<meta name="twitter:url" content="" />
-	<meta name="twitter:card" content="" />
- 
 	<link href='https://fonts.googleapis.com/css?family=Work+Sans:400,300,600,400italic,700' rel='stylesheet' type='text/css'>
 	<link href="https://fonts.googleapis.com/css?family=Playfair+Display:400,700" rel="stylesheet">
-	
+
 	<!-- Animate.css -->
 	<link rel="stylesheet" href="css/animate.css">
 	<!-- Icomoon Icon Fonts-->
@@ -31,120 +21,92 @@
 	<script src="js/modernizr-2.6.2.min.js"></script>
 	</head>
 	<body>
-				
-	<div class="fh5co-loader"></div>
-    
+		
+    <div class="fh5co-loader"></div>
+
 	<div id="page">
-        <nav class="fh5co-nav" role="navigation">
-            <div class="container">
-                <div class="row"  style="text-align: center">
-                    <div class="left-menu text-right menu-1">
-                        <ul>
-                            <li><a href="index.html">Esci</a></li>
-                        </ul>
-                    </div>
-                    <div class="logo center-menu text-center" style="padding-bottom: 30px">
-                        <div id="fh5co-logo"><a href="#">It's Hockey!</a></div>
-                    </div>
-                    <div class="right-menu text-left menu-1">
-                        <ul>
-                            <li><a href="contact.html">Contatti</a></li>
-                        </ul>
+        <div class="my-nav">
+            <h1>STANZE</h1>
+            <div>
+                <ul id="roomList"></ul>
+            </div>
+        </div>
+        <div id="mySidenav" class="sidenav">
+            <a href="javascript:void(0)" class="closebtn">&times;</a>
+            <a href="index.html" onclick="logout()" >Esci</a>
+            <a href="contact.html">Contatti</a>
+        </div>
+        <span class="myMenu">&#9776;</span>
+
+        <div class="boxRoute">
+            <nav class="fh5co-nav" role="navigation">
+                <div class="container">
+                    <div class="row"  style="text-align: center">
+                        <div class="left-menu text-right menu-1">
+                            <ul>
+                                <li><a href="index.html">Esci</a></li>
+                            </ul>
+                        </div>
+                        <div class="logo center-menu text-center" style="padding-bottom: 30px">
+                            <div id="fh5co-logo"><a href="#">It's Hockey!</a></div>
+                        </div>
+                        <div class="right-menu text-left menu-1">
+                            <ul>
+                                <li><a href="contact.html">Contatti</a></li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </nav>      
-       
-        <header id="fh5co-header" class="fh5co-cover" role="banner" style="background-image:url(images/img_bg_2.jpg); height:100%">
+            </nav>
+        </div>
+
+        <header id="fh5co-header" class="fh5co-cover" role="banner">
             <div class="overlay"></div>
             <div class="container">
-                <div class="row">
-                    <div class=" text-center">
-                        <div class="display-t">
-                            <div class="display-tc animate-box" data-animate-effect="fadeIn">
-                                <div id="box-size" class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                                <div class="row box-info-user">
+                <div class="row text-center">
+                    <div class="display-t">
+                        <div class="display-tc animate-box">
 
+                            <div class="col-lg-8 col-md-8 col-sm-8 col-xs-8">
+                                <div class="row box-info-user col-lg-8 col-md-8 col-sm-8 col-xs-8">
                                     <ul>
-                                        <li class="menu-item">Nickname: <span id="nick"></span></li>
-                                        <li class="menu-item">Livello: <span id="liv"></span> </li>
-                                        <li class="menu-item">Exp: <span id="ex"></span> </li> 
+                                        <li class="menu-item">Nickname: <span id="nickname"></span></li>
+                                        <li class="menu-item">Livello: <span id="level"></span> </li>
+                                        <li class="menu-item">Esperienza: <span id="exp"></span> </li> 
                                     </ul>
                                 </div>
-                                </div>
-
-                                <div id="room">
-                                    <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
-                                        <div class="list-room">
-                                            <h3 style="color:yellow; font-family: 'Tangerine', cursive, serif;">STANZA 1</h3>
-                                            <ul class="room-text prova">
-                                                <li><span id="room1_1" class="room-text">Posto libero</span></li>
-                                                <li id="room1">VS</li>
-                                                <form method = "POST">
-                                                    <li><input id="btn1" type="hidden" class="btn btn-default" name="PlayGame" value="ENTRA"/></li>
-                                                    <li><input id="btn1" type="hidden" class="btn btn-default" name="1"/></li>
-                                                </form>
-                                                <li><span id="room1_2" class="room-text">Posto libero</span></li>
-                                            </ul>
-                                        </div>
-                                    </div>
-                                    <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
-                                        <div class="list-room">
-                                            <h3 style="color:yellow; font-family: 'Tangerine', cursive, serif;">STANZA 2</h3>
-                                            <ul class="room-text">
-                                                <li><span id="room2_1">Posto libero</span></li>
-                                                <li id="room2">VS</li>
-                                                <form method = "POST">
-                                                    <li><input id="btn2" type="hidden" class="btn btn-default" name="PlayGame" value="ENTRA"/></li>
-                                                    <li><input id="btn2" type="hidden" class="btn btn-default" name="2"/></li>
-                                                </form>
-                                                <li><span id="room2_2">Posto libero</span></li>
-                                            </ul>
-                                        </div>	
-                                    </div>
-                                    <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
-                                        <div class="list-room">
-                                            <h3 style="color:yellow; font-family: 'Tangerine', cursive, serif;">STANZA 3</h3>
-                                            <ul class="room-text">
-                                                <li><span id="room3_1">Posto libero</span></li>
-                                                <li id="room3">VS</li>
-                                                <form method = "POST">
-                                                    <li><input id="btn3" type="hidden" class="btn btn-default" name="PlayGame" value="ENTRA"/></li>
-                                                    <li><input id="btn3" type="hidden" class="btn btn-default" name="3"/></li>
-                                                </form>
-                                                <li><span id="room3_2">Posto libero</span></li>
-                                            </ul>
-                                        </div>	
-                                    </div>
-                                    <div class="col-lg-3 col-md-3 col-sm-6 col-xs-12">
-                                        <div class="list-room">
-                                            <h3 style="color:yellow; font-family: 'Tangerine', cursive, serif;">STANZA 4</h3>
-                                            <ul  class="room-text">
-                                                <li><span id="room4_1">Posto libero</span></li>
-                                                <li id="room4">VS</li>
-                                                <form method = "POST" >
-                                                    <li><input id="btn4" type="hidden" class="btn btn-default" name="PlayGame" value="ENTRA"/></li>
-                                                    <li><input id="btn4" type="hidden" class="btn btn-default" name="4"/></li>
-                                                </form>
-                                                <li><span id="room4_2">Posto libero</span></li>
-                                            </ul>
-                                        </div>	
-                                    </div>
-                                </div>
-                            
-                                <form method = "POST">
-                                    <button type="submit" class="btn btn-default" style="margin-top:2%" name="PlayGame">Partita Casuale</button>
-                                    <input type="hidden" class="btn btn-default" name="random"/>
-                                </form>
                             </div>
+                            <table>
+                                <tr>
+                                    <td style="padding-left: 20%;">
+                                        <button type="submit" class="btn btn-default" style="margin-top:2%" name="quickGame">Partita Veloce</button>
+                                    </td>
+                                    <td style="padding-right: 20%;">
+                                        <button id="buildRoom" type="submit" class="btn btn-default" style="margin-top:2%" name="createRoom">Crea stanza</button>
+                                    </td>
+                                </tr>
+                            </table>
                         </div>
                     </div>
                 </div>
             </div>
         </header>
 
-	</div>
-	
+        <div id="myModal" class="modal">
+            <div class="boxModal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                      <span class="close">&times;</span>
+                    </div>
+                    <div class="modal-body" >
+                        <table id="modalTable"></table>
+                    </div>
+                    <div class="modal-footer"></div>
+                </div>
+            </div>
+          </div>
+    </div>
+
 	<!-- jQuery -->
 	<script src="js/jquery.min.js"></script>
 	<!-- jQuery Easing -->
@@ -153,147 +115,310 @@
 	<script src="js/bootstrap.min.js"></script>
 	<!-- Waypoints -->
 	<script src="js/jquery.waypoints.min.js"></script>
-	<!-- Main -->
-	<script src="js/main.js"></script>
+    <!-- Main -->
+    <script src="js/main.js"></script>
+    <!-- Script io.socket -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.slim.js"></script>
+    <!-- SCRIPT COOKIE -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+    <!-- Script socket -->
+    <script src="www/js/script.js"></script>
 
     <script>
-        var _nick;
-        var _liv;
-        var _exp;
-        var elementsCookie = document.cookie.split('; ');
-        
-        for(var i=0;i<elementsCookie.length;i++){
-            if(elementsCookie[i].substr(0,4)=="nick"){
-                var tmp = elementsCookie[i].split('=');
-                var tmp = tmp[1].split(';');
-                _nick = tmp[0];
+        var table = document.getElementById("modalTable");
+        var room = document.getElementsByClassName("joinRoom");
+        var boxModal = document.getElementsByClassName("boxModal")[0];
+        var roomBusy = 'La stanza selezionata attualmente è già occupata!';
+        var roomError = 'La password inserita è errata!';
+        var roomWaiting = 'In attesa di un avversario...';
+        var roomLoading = 'La partita inizierà tra';
+        var roomCancel = 'La partita è stata annullata!';
+        var roomNotFound = 'Nessuna stanza disponibile!';
+        var modalOpen = false;
+        initializeMainGame();
+
+        document.addEventListener('refreshData', function(data){
+            var event = Object.keys(data.detail)[0];
+            switch(event){
+                case 'listRooms': {
+                   room = document.getElementsByClassName('joinRoom');
+                   $(room).on('click', function(value) {
+                       if(!modalOpen) {
+                            modalOpen = true;
+                            var id = value.currentTarget.id;
+                            var state = data.detail.listRooms[id].state;
+                            var key = data.detail.listRooms[id].id;
+
+                            if(state === 'busy') {
+                                modalErrorRoom(roomBusy);
+                            } else {
+                                var type = data.detail.listRooms[id].type;
+                                if(type === 'private') {
+                                    modalAccessRoom(key);
+                                } else {
+                                    modalOpen = false;
+                                    loginIntoRoom(key);
+                                }
+                            }
+                       }
+                    });
+                    break;
+                }
+                case 'busyRoom': {
+                    modalErrorRoom(roomBusy);
+                    break;
+                }
+                case 'passwordError': {
+                    modalErrorRoom(roomError);
+                    break;
+                }
+                case 'dataUser': {
+                    var user = Object.values(data.detail)[0];
+                    boxInfoUser(user);
+                    break;
+                }
+                case 'waitingPlayer': {
+                    modalWaitingRoom(roomWaiting, 'loading');
+                    break;
+                }
+                case 'waitingGame': {
+                    clearModal();
+                    modalWaitingRoom(roomLoading, 'countdown');
+                    break;
+                }
+                case 'eraseRoom': {
+                    clearModal();
+                    modalErrorRoom(roomCancel);
+                    break;
+                }
+                case 'notFoundRoom': {
+                    modalErrorRoom(roomNotFound);
+                    break;
+                }
             }
-            else if(elementsCookie[i].substr(0,3)=="liv"){
-                var tmp = elementsCookie[i].split('=');
-                var tmp = tmp[1].split(';');
-                _liv = tmp[0];
+        }.bind(this));
+
+        function boxInfoUser(user) {
+            document.getElementById('nickname').innerHTML = user.nickname;
+            document.getElementById('level').innerHTML = user.level;
+            document.getElementById('exp').innerHTML = user.exp;
+        }
+
+        function modalWaitingRoom(message, imageURL) {
+            boxModal = document.getElementsByClassName('boxModal')[0];
+            modalTitle('Avvio partita');
+            var row1 = table.insertRow(0);
+            var row1_cell1 = row1.insertCell(0);
+            var boxElements = document.createElement('div');
+            boxElements.id = 'boxElements';
+            row1_cell1.appendChild(boxElements);
+
+            var textMessage = document.createElement('h3');
+            textMessage.textContent = message;
+            boxElements.appendChild(textMessage);
+
+            var image = document.createElement('img');
+            image.className = 'imageLoading';
+            image.src = `/images/${imageURL}.gif`;
+            boxElements.appendChild(image);
+
+            modal.style.display = 'block';
+        }
+
+        function modalErrorRoom(messageError) {
+            modalParams('Errore', 'OK');
+            var row1 = table.insertRow(0);
+            var row1_cell1 = row1.insertCell(0);
+            var boxError = document.createElement('div');
+            boxError.id = 'textError';
+            row1_cell1.appendChild(boxError);
+
+            var textError = document.createElement('h3');
+            textError.textContent = messageError;
+            boxError.appendChild(textError);
+            var button = document.getElementsByClassName('modal-footer')[0].firstChild;
+            button.onclick = () => {
+                closeModal();
+            };
+
+            modal.style.display = 'block';
+        }
+
+        function modalAccessRoom(key) {
+            modalParams('Inserisci la password della stanza', 'INVIA');
+            var row1 = table.insertRow(0);
+            var row1_cell1 = row1.insertCell(0);
+            row1_cell1.setAttribute('colspan', 2);
+            var row1_cell2 = row1.insertCell(1);
+            row1_cell1.innerHTML = 'Password:';
+            row1_cell2.innerHTML = '<input type="password" name="passwordRoom" />';
+            var button = document.getElementsByClassName('modal-footer')[0].firstChild;
+            button.onclick = function() {
+                var password = document.getElementsByName('passwordRoom')[0].value;
+                loginIntoRoom(key, password);
+                closeModal();
             }
-            else if(elementsCookie[i].substr(0,2)=="ex"){
-                var tmp = elementsCookie[i].split('=');
-                var tmp = tmp[1].split(';');
-                _exp = tmp[0];
+
+            modal.style.display = 'block';
+        }
+
+        function checkTypeRoom(selectedValue) {
+            table = document.getElementById('modalTable');
+            if( table.rows.length <=2 && selectedValue == 'private' ) {
+                var row = table.insertRow(2);
+                var cell1 = row.insertCell(0);
+                cell1.setAttribute('colspan', 2);
+                var cell2 = row.insertCell(1);
+                cell1.innerHTML = 'Inserisci la password:';
+                cell2.innerHTML = '<input type="password" name="passwordNewRoom" />';
+            }
+            else if(table.rows.length > 2 && selectedValue == 'public') {
+                table.deleteRow(2);
             }
         }
 
-        document.getElementById("nick").innerHTML = _nick;
-        document.getElementById("liv").innerHTML = _liv;
-        document.getElementById("ex").innerHTML = _exp;
+        function loadJQuery() {
+            $('#selectTypeRoom').on('click', function() {
+                var selectTypeRoom = document.getElementById('selectTypeRoom');
+                var selectedValue = selectTypeRoom.options[selectTypeRoom.selectedIndex].value;
+                checkTypeRoom(selectedValue);
+            });
+        }
+
+        function modalTitle(title) {
+            var header = document.getElementsByClassName('modal-header')[0];
+            var h2 = document.createElement('h2');
+            h2.textContent = title;
+            header.appendChild(h2);
+        }
+
+        function modalParams(title, textButton) {
+            var header = document.getElementsByClassName('modal-header')[0];
+            var h2 = document.createElement('h2');
+            h2.textContent = title;
+            header.appendChild(h2);
+
+            var footer = document.getElementsByClassName('modal-footer')[0];
+            var button = document.createElement('button');
+            button.id = 'create';
+            button.textContent = textButton;
+            footer.appendChild(button);
+        }
+
+        function clearModal() {
+            $('.modal-header h2').remove();
+            $('.modal-footer button').remove();
+            $('#modalTable tr').remove();
+        }
+
+        $('#buildRoom').on('click', function() {
+            if(!modalOpen) {
+                modalOpen = true;
+                modalParams('Inserisci i dati relativi alla stanza:', 'CREA');
+
+                var row1 = table.insertRow(0);
+                var row1_cell1 = row1.insertCell(0);
+                row1_cell1.setAttribute('colspan', 2);
+                var row1_cell2 = row1.insertCell(1);
+                row1_cell1.innerHTML = 'Nome stanza:';
+                row1_cell2.innerHTML = '<input type="text" name="nameRoom" maxlength="25" />';
+
+                var row2 = table.insertRow(1);
+                var row2_cell1 = row2.insertCell(0);
+                row2_cell1.setAttribute('colspan', 2);
+                var row2_cell2 = row2.insertCell(1);
+                row2_cell1.innerHTML = 'Tipo stanza:';
+
+                var select = document.createElement("select");
+                select.id = 'selectTypeRoom';
+                select.name = 'typeRoom';
+                row2_cell2.appendChild(select);
+
+                var option1 = document.createElement("option");
+                option1.value = 'public';
+                option1.text = 'PUBBLICA';
+                select.appendChild(option1);
+
+                var option2 = document.createElement("option");
+                option2.value = 'private';
+                option2.text = 'PRIVATA';
+                select.appendChild(option2);
+
+                loadJQuery();
+
+                var button = document.getElementsByClassName('modal-footer')[0].firstChild;
+                button.onclick = function() {
+                    var nameRoom = document.getElementsByName('nameRoom')[0].value.trim();
+                    var selectTypeRoom = document.getElementById('selectTypeRoom').value;
+                    var dataRoom;
+
+                    if (selectTypeRoom == 'private') {
+                        var passwordRoom = document.getElementsByName('passwordNewRoom')[0].value;
+                        if(nameRoom.length == 0 || passwordRoom.trim().length == 0) {
+                            return;
+                        }
+                        dataRoom = {name : nameRoom, type: selectTypeRoom, password: passwordRoom};
+                    } else {
+                        if (nameRoom.length == 0) {
+                            return;
+                        }
+                        dataRoom = {name : nameRoom, type: selectTypeRoom};
+                    }
+                    createRoom(dataRoom);
+                    closeModal();
+                }
+            }
+        });
+
+        $('[name=quickGame]').on('click', function() {
+            quickGame();
+        });
     </script>
 
     <script>
-        var _room1;
-        var _room2;
-        var _room3;
-        var _room4;
-        var n=[];
-        var elementsCookie = document.cookie.split('; ');
-        
-        for(var i=0;i<elementsCookie.length;i++){
-            if(elementsCookie[i].substr(0,5)=="room1"){
-                var tmp = elementsCookie[i].split('=');
-                var tmp = tmp[1].split(';');
-                if(tmp[0]=="true"){
-                    _room1 = true;
-                }
+        var modal = document.getElementById("myModal");
+        var btnCreateRoom = document.getElementById("buildRoom");
+        var span = document.getElementsByClassName("close")[0];
+
+        // When the user clicks the button, open the modal 
+        btnCreateRoom.onclick = function() {
+            modal.style.display = 'block';
+        }
+
+        // When the user clicks on <span> (x), close the modal
+        span.onclick = function() {
+            if($('.modal-header h2')[0].innerHTML == 'Avvio partita') {
+                if($('.modal-body h3')[0].innerHTML == roomWaiting) {
+                    cancelGameWaiting();
+                } else {
+                    cancelGameLoading();
+                }                
             }
-            else if(elementsCookie[i].substr(0,5)=="room2"){
-                var tmp = elementsCookie[i].split('=');
-                var tmp = tmp[1].split(';');
-                if(tmp[0]=="true"){
-                    _room2 = true;
+            closeModal();
+        }
+
+        // When the user clicks anywhere outside of the modal, close it
+        window.onclick = function(event) {
+            if (event.target == boxModal ) {
+                if($('.modal-header h2')[0].innerHTML == 'Avvio partita') {
+                    return;
                 }
-            }
-            else if(elementsCookie[i].substr(0,5)=="room3"){
-                var tmp = elementsCookie[i].split('=');
-                var tmp = tmp[1].split(';');
-                if(tmp[0]=="true"){
-                    _room3 = true;
-                }
-            }
-            else if(elementsCookie[i].substr(0,5)=="room4"){
-                var tmp = elementsCookie[i].split('=');
-                var tmp = tmp[1].split(';');
-                if(tmp[0]=="true"){
-                    _room4 = true;
-                }
-            }
-            else if(elementsCookie[i].substr(0,10)=="namePlayer"){
-                var tmp = elementsCookie[i].split('=');
-                console.log(".....",tmp);
-                var tmp = tmp[1].split(';');
-                console.log(".....",tmp);
-                var tmp=tmp[0].split(',');
-                console.log(".....",tmp);
-                var name;
-                
-                for(var y=0;y<tmp.length;y++){
-                    /*ABBIAMO RISOLTO IN QUESTO MODO PERCHE' CI SONO STATI PROBLEMI CON L'ASSEGNAZIONE DIRETTA DEI VALORI */
-                    name=tmp[y];
-                    n[y]=name;
-                    console.log("NAME:",y," ->",n[y]);
-                }
+
+                modal.style.display = 'none';
+                clearModal();
+                modalOpen = false;
             }
         }
 
-        console.log("Val room1=",_room1);
-        console.log("Val room2=",_room2);
-        console.log("Val room3=",_room3);
-        console.log("Val room4=",_room4);
-
-        if(_room1){
-            document.getElementById("room1_1").innerHTML = n[0];
-            document.getElementById("room1_2").innerHTML = n[1];
-        }
-        else{
-            document.getElementById("room1_1").innerHTML = "";
-            document.getElementById("room1_2").innerHTML = "";
-            
-            document.getElementById("room1").innerHTML = "STANZA VUOTA";
-            document.getElementById("btn1").type = 'submit';
+        function closeModal() {
+            modal.style.display = 'none';
+            clearModal();
+            modalOpen = false;
         }
 
-        if(_room2){
-            document.getElementById("room2_1").innerHTML = n[2];
-            document.getElementById("room2_2").innerHTML = n[3];
-        }
-        else{
-            document.getElementById("room2_1").innerHTML = "";
-            document.getElementById("room2_2").innerHTML = "";
-            
-            document.getElementById("room2").innerHTML = "STANZA VUOTA";
-            document.getElementById("btn2").type = 'submit';
-        }
-
-        if(_room3){
-            document.getElementById("room3_1").innerHTML = n[4];
-            document.getElementById("room3_2").innerHTML = n[5];
-        }
-        else{
-            document.getElementById("room3_1").innerHTML = "";
-            document.getElementById("room3_2").innerHTML = "";
-            
-            document.getElementById("room3").innerHTML = "STANZA VUOTA";
-            document.getElementById("btn3").type = 'submit';
-        }
-
-        if(_room4){
-            document.getElementById("room4_1").innerHTML = n[6];
-            document.getElementById("room4_2").innerHTML = n[7];
-        }
-        else{
-            //Oscurare room1_1
-            //Oscurare room1_2
-            //Dare VS -> "STANZA VUOTA" + BOTTONE
-            document.getElementById("room4_1").innerHTML = "";
-            document.getElementById("room4_2").innerHTML = "";
-
-            document.getElementById("room4").innerHTML = "STANZA VUOTA";
-            document.getElementById("btn4").type = 'submit';
+        function sendData(data) {
+            modal.style.display = 'none';
+            clearModal();
         }
     </script>
 

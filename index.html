@@ -17,62 +17,74 @@
 	<link rel="stylesheet" href="css/bootstrap.css">
 	<!-- Theme style  -->
 	<link rel="stylesheet" href="css/style.css">
-
 	<!-- Modernizr JS -->
 	<script src="js/modernizr-2.6.2.min.js"></script>
+
 	</head>
 	<body>
 
 	<div class="fh5co-loader"></div>
-	
-	<div id="page">
-	<nav class="fh5co-nav" role="navigation">
-		<div class="container">
-			<div class="row"  style="text-align: center">
-				<div class="left-menu text-right menu-1">
-					<ul>
-						<li><a href="registration.html">Registrati</a></li>
-					</ul>
-				</div>
-				<div class="logo center-menu text-center" style="padding-bottom: 30px">
-					<div id="fh5co-logo"><a href="index.html">It's Hockey!</a></div>
-				</div>
-				<div class="right-menu text-left menu-1">
-					<ul>
-						<li><a href="contact.html">Contatti</a></li>
-					</ul>
-				</div>
-			</div>
-		</div>
-	</nav>
 
-	<header id="fh5co-header" class="fh5co-cover" role="banner" style="background-image:url(images/img_bg_2.jpg);">
-		<div class="overlay"></div>
-		<div class="container">
-			<div class="row">
-				<div class="col-md-10 col-md-offset-1 text-center">
-					<div class="display-t">
-						<div class="display-tc animate-box" data-animate-effect="fadeIn">
-							
-							<h1>Accedi</h1>
-							<div class="row">
-								<form class="form-inline " id="Login" method="POST">
-									<div class="col-md-6 col-md-offset-3">
-										<div class="form-group">
-											<input type="text" class="form-control" id="usr" name="LoginUsr" placeholder="Inserisci il nickname" required>
-											<input type="password" class="form-control" style="margin-top:2%" id="Password" name="LoginPsw" placeholder="Inserisci la password" required>
-											
-											<button type="submit" class="btn btn-default" style="margin-top:2%" >Conferma</button>
+	<div id="page">
+		<div class="boxInitial">
+
+			<div id="mySidenav" class="sidenav">
+				<a href="javascript:void(0)" class="closebtn">&times;</a>
+				<a href="registration.html">Registrati</a>
+				<a href="contact.html">Contatti</a>
+			</div>
+			<span class="myMenu">&#9776;</span>
+
+			<div class="boxRoute">
+				<nav class="fh5co-nav" role="navigation">
+					<div class="container">
+						<div class="row"  style="text-align: center">
+							<div class="left-menu text-right menu-1">
+								<ul>
+									<li><a href="registration.html">Registrati</a></li>
+								</ul>
+							</div>
+							<div class="logo center-menu text-center" style="padding-bottom: 30px">
+								<div id="fh5co-logo"><a href="index.html">It's Hockey!</a></div>
+							</div>
+							<div class="right-menu text-left menu-1">
+								<ul>
+									<li><a href="contact.html">Contatti</a></li>
+								</ul>
+							</div>
+						</div>
+					</div>
+				</nav>
+			</div>
+
+			<header id="fh5co-header" class="fh5co-cover" role="banner">
+				<div class="overlay"></div>
+				<div class="container">
+					<div class="row">
+						<div class="col-md-10 col-md-offset-1 text-center">
+							<div class="display-t">
+								<div class="display-tc animate-box" data-animate-effect="fadeIn">
+									<div></div>
+									<h1>Accedi</h1>
+									<div class="loginForm">
+										<div class="form-inline" id="Login">
+											<div class="col-md-6 col-md-offset-3">
+												<div class="form-group">
+													<input type="text" class="form-control" name="username" placeholder="Inserisci il nickname">
+													<input type="password" class="form-control" style="margin-top:2%" name="password" placeholder="Inserisci la password">
+													
+													<button id="buttonLogin" class="btn btn-default" style="margin-top:2%">Conferma</button>
+												</div>
+											</div>
 										</div>
 									</div>
-								</form>
+								</div>
 							</div>
 						</div>
 					</div>
 				</div>
-			</div>
+			</header>
 		</div>
-	</header>
 
 	<div id="fh5co-services" class="fh5co-bg-section">
 		<div class="container">
@@ -121,7 +133,6 @@
 								<a href="https://www.facebook.com/giacomo.romano.399" style="color: blue"><i class="icon-facebook"></i> Giacomo Romano</a>
 							</td>	
 						</tr>
-
 						<tr>
 							<td>
 								<a href="https://www.facebook.com/marco.raciti.39" style="color: blue"><i class="icon-facebook"></i> Marco Raciti</i></a>
@@ -138,7 +149,7 @@
 	<div class="gototop js-top">
 		<a href="#" class="js-gotop"><i class="icon-arrow-up"></i></a>
 	</div>
-	
+
 	<!-- jQuery -->
 	<script src="js/jquery.min.js"></script>
 	<!-- jQuery Easing -->
@@ -149,6 +160,22 @@
 	<script src="js/jquery.waypoints.min.js"></script>
 	<!-- Main -->
 	<script src="js/main.js"></script>
+	<!-- Script io.socket -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.slim.js"></script>
+    <!-- Script socket -->
+    <script src="www/js/script.js"></script>
+
+	<script>
+		removeCookie();
+		$('#buttonLogin').on('click', function() {
+			var username = $("input[name=username]").val();
+			var password = $("input[name=password]").val();
+			if(username.length > 0 && password.length > 0) {
+				var data = {nickname: username, password: password};
+				loginUser(data);
+			}
+		})
+	</script>
 
 	</body>
 </html>

@@ -24,47 +24,43 @@
 	<div class="fh5co-loader"></div>    
 
 	<div id="page">
-		<nav class="fh5co-nav" role="navigation">	
-            <div class="container">
-                <div class="row"  style="text-align: center">	
-                    <div class="logo center-menu text-center" style="padding-bottom: 30px">
-                        <div id="fh5co-logo"><a href="#">It's Hockey!</a></div>
-                    </div> 
-                </div>
-            </div>
-		</nav>
+		<div class="boxRoute">
+			<nav class="fh5co-nav" role="navigation">
+				<div class="container">
+					<div class="row"  style="text-align: center">
+						<div class="logo center-menu text-center" style="padding-bottom: 30px">
+							<div id="fh5co-logo"><a href="#">It's Hockey!</a></div>
+						</div> 
+					</div>
+				</div>
+			</nav>
+		</div>
 
-        <header id="fh5co-header" class="fh5co-cover" role="banner" style="background-image:url(images/img_bg_2.jpg); height:100%">
+        <header id="fh5co-header" class="fh5co-cover" role="banner">
             <div class="overlay"></div>
-            <div class="container display-space">
-                <div class="row">
-                    <div class=" text-center">
-                        <div class="display-space-top" >
-                            <div class="animate-box" data-animate-effect="fadeIn">
-                                <h1 style="color: black;" >Hai</h1><h1 style="margin-left:1%;margin-right:1%" id="result"></h1><h1>la partita!</h1> 
-                            </div>
-
-                            <div id="AAA" class="col-md-10 col-md-push-1">
-
-								<div id="border" class="fh5co-contact-info list-contact" style="border: 3px solid rgba(255, 255, 255, 0.8)">
-									<h4 id="textStat" style="color: rgba(255, 255, 0, 0.76)">Statistiche giocatore</h4>
-									<ul class="list-contact2">
-										<li><h2>Livello: <h3 id="liv">999</h3></h2></li>
-										<li><h2>Esperienza:<h3 id="esp_prev"></h3> <h3>(+</h3><h3 id="ex"></h3><h3>)</h3></h2></li>
+            <div class="container">
+                <div class="row text-center">                
+					<div class="display-t">
+						<div class="display-tc animate-box">
+							<div></div>
+							<span>Hai&nbsp;</span><span id="result"></span><span>&nbsp;la partita!</span> 
+							<div class="col-lg-8 col-md-8 col-sm-8 col-xs-8">
+								<div class="row box-info-user user-data-report">
+									<ul>
+										<li><span class="player-statistic">Statistiche giocatore</span></li>
+										<li class="menu-item">Livello: <span id="level"></span> </li>
+										<li class="menu-item">Esperienza: <span id="exp"></span> <span>(+</span><span id="expGained"></span><span>)</span></li>
 									</ul>
 								</div>
-
-								<form class="form-inline"  method="POST">
-									<div class="col-md-6 col-md-offset-3">
-										<div id="btnHome" class="form-group">
-											<button id="1" type="submit" class="btn btn-default" name="btnMainGame">Conferma</button>
-										
-										</div>
-									</div>
-								</form>
-                        	</div>
-
-                        </div>
+							</div>
+							<table>
+								<tr>
+									<td>
+										<button type="submit" class="btn btn-default" style="margin-top:2%" name="backToMain">Conferma</button>
+									</td>
+								</tr>
+							</table>							
+						</div>
 					</div>
                 </div>
             </div>
@@ -81,53 +77,32 @@
 	<script src="js/jquery.waypoints.min.js"></script>
 	<!-- Main -->
 	<script src="js/main.js"></script>
-
+    <!-- Script io.socket -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.slim.js"></script>
+    <!-- SCRIPT COOKIE -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+    <!-- Script socket -->
+	<script src="www/js/script.js"></script>
+	
 	<script>
-		var _ex_prev;
-		var _liv;
-		var _exp;
-		var _result;
-		var _nick;
+		initializeFinishGame();
+		document.addEventListener('refreshData', function(data) {
+			if(Object.keys(data.detail)[0] == 'matchReport') {
+				var data = Object.values(data.detail)[0].data;
+				boxInfoUser(data);
+			}
+        }.bind(this));
 
-		var elementsCookie = document.cookie.split('; ');
-		console.log("VAL_COOKIE->",elementsCookie);
-
-		for(var i=0;i<elementsCookie.length;i++){
-			if(elementsCookie[i].substr(0,8)=="esp_prev"){
-				var tmp = elementsCookie[i].split('=');
-				var tmp = tmp[1].split(';');
-				_ex_prev = tmp[0];
-			}
-			if(elementsCookie[i].substr(0,6)=="result"){
-				var tmp = elementsCookie[i].split('=');
-				var tmp = tmp[1].split(';');
-				_result = tmp[0];
-			}
-			else if(elementsCookie[i].substr(0,3)=="liv"){
-				var tmp = elementsCookie[i].split('=');
-				var tmp = tmp[1].split(';');
-				_liv = tmp[0];
-			}
-			else if(elementsCookie[i].substr(0,2)=="ex"){
-				var tmp = elementsCookie[i].split('=');
-				var tmp = tmp[1].split(';');
-				_exp = tmp[0];
-			}
-			else if(elementsCookie[i].substr(0,4)=="nick"){
-				var tmp = elementsCookie[i].split('=');
-				var tmp = tmp[1].split(';');
-				_nick = tmp[0];
-			}
-
+		function boxInfoUser(data) {
+            document.getElementById('level').innerHTML = data.dataUser.level;
+			document.getElementById('exp').innerHTML = data.dataUser.exp;
+			document.getElementById('result').innerHTML = data.report.status;
+			document.getElementById('expGained').innerHTML = data.report.expGained;
 		}
-		_exp-=_ex_prev;
 
-		document.getElementById("result").innerHTML = _result;
-		document.getElementById("liv").innerHTML = _liv;
-		document.getElementById("esp_prev").innerHTML = _ex_prev;
-		document.getElementById("ex").innerHTML = _exp;
-
-		document.getElementById("1").setAttribute("value",_nick);
+		$('[name=backToMain]').on('click', function() {
+			backToMain();
+		});
 	</script>
 
 	</body>

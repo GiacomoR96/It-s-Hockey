@@ -1,189 +1,116 @@
-/* Inizializzazione del figlio per la partita */
-console.log("ServerGiocoFiglio avviato... PID:(",process.pid,")");
+console.log(`Instanza serverGame avviata con PID:(${process.pid})`);
 
-var express = require("express");
-var app = express();
 var nickname1;
 var nickname2;
-var id;
+var scorePlayer1 = 0;
+var scorePlayer2 = 0;
 var continueGame = true;
 
-var dataClients = [];
-var initialPositionClients = [400,700,400,700];
-var initialPositionBall = [400,450];    //400,565
-var punteggioPartita = [];
-var punteggioFinale = 3;               //7
+var initialPositionClients = [400,700];
+var initialPositionBall = [400,450];
+var punteggioFinale = 7;
 var posBaseX = 400;
 var posBaseY = 450;
 
-function delayMessage(event) {
+var baseDelay = 4000;
+var startDelay = 10000;
+
+function delayMessage(event, delay) {
     setTimeout(function myTime() {
-        if(event == "continueGame") continueGame = true;
-        process.send({id:id, event:event});
-    }, 4000);
+        if(event == 'continueGame') continueGame = true;
+        process.send({event:event, nickname: nickname1});
+        process.send({event:event, nickname: nickname2});
+    }, delay);
 }
 
-function resetServer() {
-    setTimeout(function myTime(){
-        reset();
-        process.send({id:id,event:"stopServerGame"});
-    },8000);
+function resetServer(result) {
+    setTimeout(function myTime() {
+        process.send({event:'stopServerGame', nickname: nickname1, result});
+    }, startDelay);
 }
 
-reset = () => {
-    // Azzeramento valori dopo il termine della partita
-    nickname1 = nickname2 = "";
-
-    dataClients = [];
-    initialPositionClients = [400,700,400,700];
-    punteggioPartita = [];    
+function findRivalNickname(nickname) {
+    if(nickname1 == nickname) {
+      return nickname2;
+    }
+    return nickname1;
 }
 
-process.on("message", (data) => {
+function difference(a, b) {
+    return a - b;
+}
+
+process.on('message', (data) => {
     switch(data.event){
-        case "id": {
-            id = data.indice;
+        case 'gameUsers': {
+            nickname1 = data.nickname1;
+            nickname2 = data.nickname2;
             break;
         }
-        case "startUpServer": {
-            nickname1 = data.nick1;
-            nickname2 = data.nick2;
-            
-            for (var i=0; i<2; i++) {
-
-                var x = initialPositionClients[0]?initialPositionClients[0]:null;
-                var y = initialPositionClients[1]?initialPositionClients[1]:null;
-                initialPositionClients.splice(0, 2);
-
-                var dataCurrentClient = {
-                    posX : x,
-                    posY : y,
-                    nickname: i==0?nickname1:nickname2
-                }
-
-                dataClients[i] = dataCurrentClient;
-            
-                punteggioPartita[i] = 0;
-                var nick = (i==0)?nickname1:nickname2;
-                var nick_rival = {
-                    rival: (i==0)?nickname2:nickname1
-                }
-                var val_i = {idPorta:i};
-                
-                process.send({id:id,nick:nick,event:"puckPosition",data: initialPositionBall});
-                process.send({id:id,nick:nick,event:"users_game",rival:nick_rival});
-                process.send({id:id,nick:nick,event:"setIDPorta", idPorta:val_i});
-                process.send({id:id,nick:nick,event:"start_game"});
+        case 'requestStartGame': {
+            process.send({event:'puckPosition', nickname: data.nickname, data: initialPositionBall});
+            var positionRival = {
+                posX : initialPositionClients[0],
+                posY : initialPositionClients[1]-500
             }
-
-            process.send({id:id,nick:nickname1,event:"myPosition",data: dataClients[0]});
-            process.send({id:id,nick:nickname2,event:"myPosition",data: dataClients[1]});
-
+            process.send({event:'rivalData', nickname: data.nickname, data: {nickname: findRivalNickname(data.nickname), position: positionRival}});
+            process.send({event:'myPosition', nickname: data.nickname, data: initialPositionClients});
+            process.send({event:'launchGame', nickname: data.nickname});
             break;
         }
-        case "myPosition":{
-            if (data.nick == nickname1) process.send({id:id,nick:nickname1,event:"myPosition",data:dataClients[0]});
-            else                        process.send({id:id,nick:nickname2,event:"myPosition",data:dataClients[1]});
-
-            break;
-        }
-        case "rivalPosition": {
-            var tmp;
-            if (data.nick == nickname1){
-                tmp = {
-                    posX : dataClients[1].posX,
-                    posY : dataClients[1].posY-500,
-                    nickname: nickname2
-                }
-                process.send({id:id,nick:nickname2,event:"rivalPosition",data:tmp});
-            }
-            else{
-                tmp = {
-                    posX : dataClients[0].posX,
-                    posY : dataClients[0].posY-500,
-                    nickname: nickname2
-                }
-                process.send({id:id,nick:nickname1,event:"rivalPosition",data:tmp});
-            }
-            break;
-        }
-        case "puckPosition": {
+        case 'puckPosition': {
             // Gestione della specularita' del puck
-            var name = (data.nick == nickname1) ? nickname2 : nickname1;
-            
             var position = {
-                posX : data.data[0],
-                posY : data.data[1]
+                posX : posBaseX + difference(posBaseX, data.data[0]),
+                posY : posBaseY + difference(posBaseY, data.data[1])
             };
-           
-            var risY;
-            var risX;
-
-            var diffY = posBaseY-position.posY;
-            var diffX = posBaseX-position.posX;
-
-            risY=posBaseY+diffY;
-            risX=posBaseX+diffX;
-
-            var tmp = position;
-            tmp.posY=risY;
-            tmp.posX=risX;
-
-            process.send({id:id,nick:name,event:"puckPosition",data:[tmp.posX,tmp.posY]});
-
+            process.send({event:'puckPosition', nickname: findRivalNickname(data.nickname), data: [position.posX, position.posY]});
             break;
         }
-        case "moveMyPosition": {
-            var i = (data.nick==nickname1)?0:1;
-            dataClients[i].posX = data.data.x;
-            dataClients[i].posY = data.data.y;
-
-            var risY;
-            var risX;
-
-            var diffY = posBaseY-dataClients[i].posY;
-            var diffX = posBaseX-dataClients[i].posX;
-
-            risY = posBaseY+diffY;
-            risX = posBaseX+diffX;
-
-            var tmp = dataClients[i];
-            tmp.posY = risY;
-            tmp.posX = risX;
-
-            if (data.nick == nickname1) process.send({id:id,nick:nickname2,event:"moveRivalPosition",data:[tmp.posX,tmp.posY]});
-            else                        process.send({id:id,nick:nickname1,event:"moveRivalPosition",data:[tmp.posX,tmp.posY]});
-
+        case 'moveMyPosition': {
+            var position = {
+                posX : posBaseX + difference(posBaseX, data.data[0]),
+                posY : posBaseY + difference(posBaseY, data.data[1])
+            };
+            process.send({event:'moveRivalPosition', nickname: findRivalNickname(data.nickname), data: [position.posX, position.posY]});
             break;
         }
-        case "goalSuffered": {
+        case 'goalSuffered': {
             if(continueGame) {
                 continueGame = false;
-                var i = (data.nick == nickname1) ? 1 : 0;
-                punteggioPartita[i]+=1;
-
+                if(nickname1 == data.nickname) {
+                    scorePlayer2 += 1;
+                } else {
+                    scorePlayer1 += 1;
+                }
                 // Giocatore che ha subito il gol (VANTAGGIO DI POSIZIONE)
-                process.send({id:id, nick:nickname1, event:"refreshScoreGame", data: { scorePlayer: punteggioPartita[0], scoreRival: punteggioPartita[1] }});
+                process.send({event:'refreshScoreGame', nickname: nickname1, data: {scorePlayer: scorePlayer1, scoreRival: scorePlayer2}});
                 // Giocatore che ha segnato il gol
-                process.send({id:id, nick:nickname2, event:"refreshScoreGame", data: { scorePlayer: punteggioPartita[1], scoreRival: punteggioPartita[0] }});
+                process.send({event:'refreshScoreGame', nickname: nickname2, data: {scorePlayer: scorePlayer2, scoreRival: scorePlayer1}});
 
-                if(punteggioPartita[0] >= punteggioFinale || punteggioPartita[1] >= punteggioFinale){
-                    process.send({id:id, event:"updateDataDB", nick1:nickname1, nick2:nickname2, winner: punteggioPartita[1]>punteggioPartita[0] ? nickname2 : nickname1});
-                    delayMessage("finishGame");
-                    resetServer();
+                if(scorePlayer1 >= punteggioFinale || scorePlayer2 >= punteggioFinale){
+                    var winner;
+                    var loser;
+                    if(scorePlayer2>scorePlayer1) {
+                        winner = nickname2;
+                        loser = nickname1;
+                    } else {
+                        winner = nickname1;
+                        loser = nickname2;
+                    }
+                    process.send({event:'updateDataDB', winner, loser});
+                    delayMessage('finishGame', baseDelay);
+                    resetServer({winner, loser});
                 }
                 else {
-                    var name="";
-                    name = (data.nick==nickname1) ? nickname1 : nickname2;
-                    process.send({id:id, nick:name, event:"setPositionPuck", data:[400,650]});
-                    
-                    name = (data.nick==nickname1)?nickname2:nickname1;
-                    process.send({id:id, nick:name, event:"setPositionPuck", data:[400,250]});
-                
-                    delayMessage("continueGame");
+                    process.send({event:'setPositionPuck', nickname: nickname1, data: [400,650]});
+                    process.send({event:'setPositionPuck', nickname: nickname2, data: [400,250]});
+                    delayMessage('continueGame', baseDelay);
                 }
             }
             break;
         }
     }
 });
+
+delayMessage('startGame', startDelay);

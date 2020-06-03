@@ -1,7 +1,7 @@
 {
-  "name": "app",
-  "version": "1.0.0",
-  "description": "Questa app e bella",
+  "name": "it-s-hockey",
+  "version": "5.0.0",
+  "description": "",
   "main": "main.js",
   "dependencies": {
     "express": "^4.16.3",
@@ -10,6 +10,7 @@
     "request": "^2.87.0",
     "require": "^2.4.20",
     "socket.io": "^2.0.4",
+    "socket.io-client": "^2.3.0",
     "stream": "0.0.2",
     "stringify-object": "^3.3.0",
     "system-sleep": "^1.3.6",
