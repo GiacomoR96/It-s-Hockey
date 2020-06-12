@@ -2001,3 +2001,13 @@ div.display-tc.animate-box table {
   width: 80px;
   height: 80px;
 }
+
+.field-center {
+  display: flex;
+  justify-content: center;
+}
+
+.show-game {
+  position: absolute;
+  z-index: 1;
+}

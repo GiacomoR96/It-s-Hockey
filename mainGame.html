@@ -217,12 +217,29 @@
             textMessage.textContent = message;
             boxElements.appendChild(textMessage);
 
-            var image = document.createElement('img');
-            image.className = 'imageLoading';
-            image.src = `/images/${imageURL}.gif`;
-            boxElements.appendChild(image);
+            var loading;
+            if(imageURL == 'countdown'){
+                loading = document.createElement('h1');
+                countdownGame(loading);
+            } else {
+                loading = document.createElement('img');
+                loading.className = 'imageLoading';
+                loading.src = `/images/${imageURL}.gif`;
+            }
+            boxElements.appendChild(loading);
 
             modal.style.display = 'block';
+        }
+
+        function countdownGame(loading) {
+            var timeleft = 10;
+            var downloadTimer = setInterval(function() {
+            if(timeleft <= 0){
+                clearInterval(downloadTimer);
+            }
+            loading.innerHTML = timeleft;
+            timeleft -= 1;
+            }, 1000);      
         }
 
         function modalErrorRoom(messageError) {

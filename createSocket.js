@@ -6,13 +6,12 @@ var usersSocket = [];
 var socket = require('socket.io')(http.createServer(app));
 
 function findNickname(socket) {
-    var result;
-    usersSocket.forEach( current => {
-        if(current.socket == socket) {
-            result = current.nickname;
+    for(var i=0; i<usersSocket.length; i++) {
+        if(usersSocket[i].socket == socket) {
+            return usersSocket[i].nickname;
         }
-    });
-    return result;
+    }
+    return null;
 }
 
 socket.listen(8081, function() {
@@ -109,23 +108,21 @@ socket.on('connection', (client) => {
 });
 
 function getSocket(nickname) {
-    var response;
-    usersSocket.forEach(function(element) {
-        if(element.nickname == nickname) {
-            response = element.socket;
+    for(var i=0; i<usersSocket.length; i++) {
+        if(usersSocket[i].nickname == nickname) {
+            return usersSocket[i].socket;
         }
-    });
-    return response;
+    }
+    return null;
 }
 
 function findSocketIndex(nickname) {
-    var responseIndex;
-    usersSocket.forEach(function(element, index) {
-        if(element.nickname == nickname){
-           responseIndex = index;
+    for(var i=0; i<usersSocket.length; i++) {
+        if(usersSocket[i].nickname == nickname) {
+            return i;
         }
-    });
-    return responseIndex;
+    }
+    return null;
 }
 
 process.on('message', (data) => {
@@ -172,43 +169,43 @@ process.on('message', (data) => {
             socketClient.emit(data.event);
             break;
         }
-        case 'puckPosition':{
+        case 'puckPosition': {
             socketClient.emit(data.event,data.data);
             break;
         }
-        case 'rivalData':{
+        case 'rivalData': {
             socketClient.emit(data.event,data.data);
             break;
         }
-        case 'myPosition':{
+        case 'myPosition': {
             socketClient.emit(data.event,data.data);
             break;
         }
-        case 'launchGame':{
+        case 'launchGame': {
             socketClient.emit(data.event);
             break;
         }
-        case 'moveRivalPosition':{
+        case 'moveRivalPosition': {
             socketClient.emit(data.event,data.data);
             break;
         }
-        case 'refreshScoreGame':{
+        case 'refreshScoreGame': {
             socketClient.emit(data.event,data.data);
             break;
         }
-        case 'finishGame':{
+        case 'finishGame': {
             socketClient.emit(data.event,data.data);
             break;
         }
-        case 'setPositionPuck':{
+        case 'setPositionPuck': {
             socketClient.emit(data.event,data.data);
             break;
         }
-        case 'continueGame':{
+        case 'continueGame': {
             socketClient.emit(data.event,data.data);
             break;
         }
-        case 'matchReport':{
+        case 'matchReport': {
             socketClient.emit(data.event,data.data);
             break;
         }

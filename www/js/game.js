@@ -18,6 +18,10 @@ var app = {
         score : 0
     },
     system : {
+        defaultWidth: 800,
+        defaultHeight: 900,
+        fieldX: field.x,
+        fieldY: field.y,
         fontPlayer: 15,
         textEndGame : null,
         textGol : null,
@@ -72,23 +76,23 @@ socket.on('redirect', function(destination) {
 
 socket.on('rivalData', (data) => {
     app.rival.nickname = data.nickname;
-    app.rival.posX = data.position.posX;
-    app.rival.posY = data.position.posY;
+    app.rival.posX = proportionsX(data.position[0]);
+    app.rival.posY = proportionsY(data.position[1]);
 });
 
 socket.on('myPosition', (data) => {
-    app.player.posX = data[0];
-    app.player.posY = data[1];
+    app.player.posX = proportionsX(data[0]);
+    app.player.posY = proportionsY(data[1]);
 });
 
 socket.on('moveRivalPosition', (data) => {
-    app.rival.posX = data[0];
-    app.rival.posY = data[1]; 
+    app.rival.posX = proportionsX(data[0]);
+    app.rival.posY = proportionsY(data[1]); 
 });
 
 socket.on('setPositionPuck', (data) => {
-    app.ball.posX=data[0];
-    app.ball.posY=data[1];
+    app.ball.posX = proportionsX(data[0]);
+    app.ball.posY = proportionsY(data[1]);
 });
 
 socket.on('continueGame', () => {
@@ -97,8 +101,8 @@ socket.on('continueGame', () => {
 
 socket.on('puckPosition', (data) => {
     app.ball.lastMovement=false;
-    app.ball.posX=data[0];
-    app.ball.posY=data[1];
+    app.ball.posX = proportionsX(data[0]);
+    app.ball.posY = proportionsY(data[1]);
 });
 
 socket.on('refreshScoreGame', (data) => {
@@ -116,12 +120,42 @@ socket.on('finishGame', () => {
     app.system.finishGame = true;
 });
 
+function proportionsX(value) {
+    return (value*app.system.fieldX) / app.system.defaultWidth; 
+}
+
+function proportionsY(value) {
+    return (value*app.system.fieldY) / app.system.defaultHeight; 
+}
+
+function proportionsReverse(valueX, valueY) {
+    var resultX = (app.system.defaultWidth*valueX) / app.system.fieldX;
+    var resultY = (app.system.defaultHeight*valueY) / app.system.fieldY;
+    return [resultX, resultY];
+}
+
+function percentX(value) {
+    var result = (value*100) / app.system.defaultWidth;
+    if(result == 100) {
+        return '1.0';
+    }
+    return `.${parseInt(result)}`;
+}
+
+function percentY(value) {
+    var result = (value*100) / app.system.defaultHeight;
+    if(result == 100) {
+        return '1.0';
+    }
+    return `.${parseInt(result)}`;
+}
+
 function begin() {
     var config = {
-        type:Phaser.AUTO,
-        width:800,
-        height:900,
-        parent: 'campo',
+        type: Phaser.AUTO,
+        width: app.system.fieldX,
+        height: app.system.fieldY,
+        parent: 'field',
         dom: {
             createContainer: true
         },
@@ -152,13 +186,17 @@ function begin() {
         this.load.image('puck',"/www/img/puck.png");
     }
 
-    function create(){  
+    function create() {
         // Settiamo lo sfondo del gioco
-        this.image = this.add.image(400,450,'background');
+        this.image = this.add.image(app.system.fieldX * 0.5, app.system.fieldY * 0.5,'background');
+        this.image.scaleX = percentX(app.system.fieldX);
+        this.image.scaleY = percentY(app.system.fieldY);
 
         // Creazione dei bordi
-        for(var i=0;i<4;i++){
-            border[i] = this.physics.add.sprite(positionBorderX[i],positionBorderY[i],colorBorder[i]);
+        for(var i=0; i<4; i++) {
+            border[i] = this.physics.add.sprite(proportionsX(positionBorderX[i]), proportionsY(positionBorderY[i]), colorBorder[i]);
+            border[i].scaleX = percentX(app.system.fieldX);
+            border[i].scaleY = percentY(app.system.fieldY);
 
             border[i].setDataEnabled();
             border[i].name = colorBorder[i];
@@ -166,46 +204,54 @@ function begin() {
             border[i].setImmovable();
         }
 
-        app.system.textGol = this.add.text(290, 410, "Goal!", { font: '75px Courier', fill: '#000000' });
+        app.system.textGol = this.add.text(proportionsX(290), proportionsY(410), 'Goal!', { font: `${proportionsX(75)}px Courier`, fill: '#000000' });
         app.system.textGol.setVisible(false);
-        app.system.textEndGame = this.add.text(135, 410, "Finish game!", { font: '75px Courier', fill: '#000000' });
+        app.system.textEndGame = this.add.text(proportionsX(135), proportionsY(410), 'Finish game!', { font: `${proportionsX(75)}px Courier`, fill: '#000000' });
         app.system.textEndGame.setVisible(false);
 
-        app.system.textScore = this.add.text(5, 498, (app.player.score+' - '+app.rival.score), { font: '32px Courier', fill: '#000000' });
+        app.system.textScore = this.add.text(proportionsX(5), proportionsY(498), (app.player.score+' - '+app.rival.score), { font: `${proportionsX(32)}px Courier`, fill: '#000000' });
         app.system.textScore.angle = -90;
 
         // Inizializzazione Striker1
         strikerRival = this.physics.add.sprite(app.rival.posX, app.rival.posY,'strikerRival');
+        strikerRival.scaleX = percentX(app.system.fieldX);
+        strikerRival.scaleY = percentY(app.system.fieldY);
         strikerRival.body.setCircle(40);
 
         // Qui inizializziamo Striker2 e lo rendiamo trascinabile
         strikerPlayer = this.physics.add.sprite(app.player.posX, app.player.posY, 'strikerPlayer').setInteractive({ draggable: true});
+        strikerPlayer.scaleX = percentX(app.system.fieldX);
+        strikerPlayer.scaleY = percentY(app.system.fieldY);
         strikerPlayer.body.setCircle(40);
         strikerPlayer.body.setBounce(1,1);
 
         var div = document.createElement('div');
-        div.style = `background-color: rgb(253, 175, 31); border-radius: 15px; height: 30px; padding: 0.5% 1%; font: ${app.system.fontPlayer}px Comic Sans MS; color: white; text-transform: uppercase`;
+        div.style = `background-color: rgb(253, 175, 31); border-radius: 15px; height: ${proportionsY(30)}px; padding: 0.5% 1%; font: ${proportionsX(app.system.fontPlayer)}px Comic Sans MS; color: white; text-transform: uppercase`;
         div.innerText = app.rival.nickname;
 
-        strikerRival.label = this.add.dom(app.rival.posX, app.rival.posY, div);
+        strikerRival.label = this.add.dom(proportionsX(app.rival.posX), proportionsY(app.rival.posY), div);
 
         // Tramite questa funzione è possibile trascinare lo striker con il cursore
-        strikerPlayer.on('drag', function(pointer, dragX, dragY){
+        strikerPlayer.on('drag', function(pointer, dragX, dragY) {
 
-            if(dragY>490 && dragY<840 && dragX>75 && dragX<725){
+            if(dragY> proportionsY(490) && dragY< proportionsY(840) && dragX> proportionsX(75) && dragX< proportionsX(725)) {
                 this.x = dragX;
                 this.y = dragY;
                 app.player.posX = dragX;
                 app.player.posY = dragY;
 
-                if(!app.system.finishGame){
-                    socket.emit('moveMyPosition', {data: [app.player.posX, app.player.posY]});
+                // TODO: CAPIRE SE SI POSSONO MANDARE MENO MESSAGGI IN BASE AL VALORE RICAVATO DALLA PROPORZIONE, SE
+                // LO SPOSTAMENTO E' DI POCHI PIXEL ALLORA L'EVENTO NON DEVE ESSERE MANDATO
+                if(!app.system.finishGame) {
+                    socket.emit('moveMyPosition', {data: proportionsReverse(app.player.posX, app.player.posY)});
                 }
             }
         });
         strikerPlayer.setImmovable();
 
         puck = this.physics.add.sprite(app.ball.posX,app.ball.posY, 'puck');
+        puck.scaleX = percentX(app.system.fieldX);
+        puck.scaleY = percentY(app.system.fieldY);
         puck.body.setCircle(20);
         puck.body.setBounce(1,1);
         puck.body.collideWorldBounds = true;
@@ -221,9 +267,9 @@ function begin() {
         app.system.textGol.setVisible(true);
     }
 
-    function update(){
+    function update() {
         if(app.ball.lastMovement) {
-            socket.emit('puckPosition', {data: [puck.x, puck.y]});
+            socket.emit('puckPosition', {data: proportionsReverse(puck.x, puck.y)});
             puck.setVelocity((puck.body.velocity.x) * 0.997, (puck.body.velocity.y) * 0.997);   // Decremento velocità di 3 millesimi a ciclo di update
         }
         else{
@@ -236,9 +282,11 @@ function begin() {
         strikerRival.label.x = app.rival.posX;
         strikerRival.label.y = Math.floor(app.rival.posY - 60);
 
-        if(app.system.refreshScore){
+        if(app.system.refreshScore) {
             app.system.textScore.setVisible(false);
-            app.system.textScore = this.add.text(5, 498, (app.player.score+' - '+app.rival.score), { font: '32px Courier', fill: '#000000' });
+            app.system.textScore = this.add.text(proportionsX(5), proportionsY(498), (app.player.score+' - '+app.rival.score), { font: '32px Courier', fill: '#000000' });
+            app.system.textScore.scaleX = percentX(app.system.fieldX);
+            app.system.textScore.scaleY = percentY(app.system.fieldY);
             app.system.textScore.angle = -90;
             app.system.refreshScore = false;
         }
@@ -267,19 +315,21 @@ function begin() {
                 puck.setVelocity(-10 * diffX, -10 * diffY);
             }
 
+            // TODO : DA RIVEDERE IL COMPORTAMENTO
             if(app.ball.lastMovement==false) {
-                socket.emit('puckPosition', {data: [puck.x, puck.y]});
+                socket.emit('puckPosition', {data: proportionsReverse(puck.x, puck.y)});
                 app.ball.lastMovement=true;
             }
         });
 
+        // TODO: VALUTARE SE SI PUO' MIGLIORARE
         // Zona porta del rivale
-        if(puck.x >346 && puck.x<455 && puck.y>0 && puck.y<45) {
+        if(puck.x > proportionsX(346) && puck.x< proportionsX(455) && puck.y> 0 && puck.y< proportionsY(45)) {
             goal(puck);
         }
 
         // Zona porta del player
-        if(puck.x >346 && puck.x<455 && puck.y>855 && puck.y<900) {
+        if(puck.x > proportionsX(346) && puck.x< proportionsX(455) && puck.y> proportionsY(855) && puck.y< proportionsY(app.system.defaultHeight)) {
             goal(puck);
             socket.emit('goalSuffered');
         }
@@ -294,6 +344,8 @@ function begin() {
             app.system.textGol.setVisible(false);
 
             puck = this.physics.add.sprite(app.ball.posX,app.ball.posY,'puck');
+            puck.scaleX = percentX(app.system.fieldX);
+            puck.scaleY = percentY(app.system.fieldY);
             puck.body.setCircle(20);
             puck.body.setBounce(1,1);
             puck.body.collideWorldBounds = true;

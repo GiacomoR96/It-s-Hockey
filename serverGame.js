@@ -6,8 +6,9 @@ var scorePlayer1 = 0;
 var scorePlayer2 = 0;
 var continueGame = true;
 
-var initialPositionClients = [400,700];
-var initialPositionBall = [400,450];
+var positionBallPlayer1 = [400, 450];
+var positionBallPlayer2 = [400, 450];
+var positionRival = [400, 175];
 var punteggioFinale = 7;
 var posBaseX = 400;
 var posBaseY = 450;
@@ -48,31 +49,43 @@ process.on('message', (data) => {
             break;
         }
         case 'requestStartGame': {
-            process.send({event:'puckPosition', nickname: data.nickname, data: initialPositionBall});
-            var positionRival = {
-                posX : initialPositionClients[0],
-                posY : initialPositionClients[1]-500
+            var positionBall;
+            if(data.nickname == nickname1) {
+                positionBall = positionBallPlayer1;
+            } else {
+                positionBall = positionBallPlayer2;
             }
+
+            process.send({event:'puckPosition', nickname: data.nickname, data: positionBall});
             process.send({event:'rivalData', nickname: data.nickname, data: {nickname: findRivalNickname(data.nickname), position: positionRival}});
-            process.send({event:'myPosition', nickname: data.nickname, data: initialPositionClients});
+            process.send({event:'myPosition', nickname: data.nickname, data: [400, 725]});
+            process.send({event:'refreshScoreGame', nickname: data.nickname, data: {scorePlayer: scorePlayer1, scoreRival: scorePlayer2}});
             process.send({event:'launchGame', nickname: data.nickname});
             break;
         }
         case 'puckPosition': {
             // Gestione della specularita' del puck
-            var position = {
-                posX : posBaseX + difference(posBaseX, data.data[0]),
-                posY : posBaseY + difference(posBaseY, data.data[1])
-            };
-            process.send({event:'puckPosition', nickname: findRivalNickname(data.nickname), data: [position.posX, position.posY]});
+            var positionBall;
+            var positionReflect = [posBaseX + difference(posBaseX, data.data[0]), posBaseY + difference(posBaseY, data.data[1])];
+            if(data.nickname == nickname1) {
+                positionBallPlayer1 = data.data;
+                positionBallPlayer2 = positionReflect;
+                positionBall = positionBallPlayer2;
+            }
+            else {
+                positionBallPlayer2 = data.data;
+                positionBallPlayer1 = positionReflect;
+                positionBall = positionBallPlayer1;
+            }
+
+            process.send({event:'puckPosition', nickname: findRivalNickname(data.nickname), data: positionBall});
             break;
         }
         case 'moveMyPosition': {
-            var position = {
-                posX : posBaseX + difference(posBaseX, data.data[0]),
-                posY : posBaseY + difference(posBaseY, data.data[1])
-            };
-            process.send({event:'moveRivalPosition', nickname: findRivalNickname(data.nickname), data: [position.posX, position.posY]});
+            positionRival[0] = posBaseX + difference(posBaseX, data.data[0]);
+            positionRival[1] = posBaseY + difference(posBaseY, data.data[1]);
+
+            process.send({event:'moveRivalPosition', nickname: findRivalNickname(data.nickname), data: positionRival});
             break;
         }
         case 'goalSuffered': {
@@ -103,8 +116,10 @@ process.on('message', (data) => {
                     resetServer({winner, loser});
                 }
                 else {
-                    process.send({event:'setPositionPuck', nickname: nickname1, data: [400,650]});
-                    process.send({event:'setPositionPuck', nickname: nickname2, data: [400,250]});
+                    positionBallPlayer1 = [400,650];
+                    positionBallPlayer2 = [400,250];
+                    process.send({event:'setPositionPuck', nickname: nickname1, data: positionBallPlayer1});
+                    process.send({event:'setPositionPuck', nickname: nickname2, data: positionBallPlayer2});
                     delayMessage('continueGame', baseDelay);
                 }
             }

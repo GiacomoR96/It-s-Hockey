@@ -31,26 +31,30 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.slim.js"></script>
 	<!-- SCRIPT COOKIE -->
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+
+	<script>
+		var field = {};
+		if(screen.width < 800) {
+			field.x = screen.width;
+		} else {
+			field.x = 800;
+		}
+
+		if(screen.height < 900) {
+			field.y = screen.height;
+		} else {
+			field.y = 900;
+		}
+	</script>
 	</head>
 	<body>
 
 	<div class="fh5co-loader"></div>
 
-	<div id="page">
-		<div class="boxRoute">
-			<nav class="fh5co-nav" role="navigation">
-				<div id="campo">
-					<script src="/www/js/game.js"></script>
-				</div>
-				<div class="container">
-					<div class="row"  style="text-align: center">
-						<div class="logo center-menu text-center" style="padding-bottom: 30px">
-							<div id="fh5co-logo"><a href="#">It's Hockey!</a></div>
-						</div>
-					</div>
-				</div>
-			</nav>
-		</div>	
+	<div id="page" class="field-center"> 
+		<div id="field" class="show-game">
+			<script src="/www/js/game.js"></script>
+		</div>
 
         <header id="fh5co-header" class="fh5co-cover" role="banner">
             <div class="overlay"></div>
