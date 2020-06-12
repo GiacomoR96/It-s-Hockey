@@ -21,7 +21,8 @@ var roomParams = {
   name: null,
   winner: null,
   loser: null,
-  countReport: 0
+  countReport: 0,
+  finish: false
 };
 
 function refreshRoomsList() {
@@ -91,6 +92,7 @@ function updateRoom(room, nickname) {
 
 function deleteRoom(room) {
   if(room.instance) {
+    room.finish = true;
     room.instance.kill('SIGINT');
   }
   var indexRoom;
@@ -142,6 +144,12 @@ function prepareGame(room, nickname) {
   createInstanceGame(room, nickname);
   socketFE.send({event: 'waitingGame', nickname: room.nickname1});
   socketFE.send({event: 'waitingGame', nickname: room.nickname2});
+}
+
+function sendServerGame(room, data) {
+  if(room && !room.finish) {
+    room.instance.send(data);
+  }
 }
 
 /* COMUNICAZIONE DA SOCKET_FE e PADRE */
@@ -235,22 +243,22 @@ socketFE.on('message', (data) => {
     }
     case 'requestStartGame': {
       var room = findRoomWithNickname(data.nickname);
-      room.instance.send(data);
+      sendServerGame(room, data);
       break;
     }
     case 'puckPosition': {
       var room = findRoomWithNickname(data.nickname);
-      room.instance.send(data);
+      sendServerGame(room, data);
       break;
     }
     case 'moveMyPosition': {
       var room = findRoomWithNickname(data.nickname);
-      room.instance.send(data);
+      sendServerGame(room, data);
       break;
     }
     case 'goalSuffered': {
       var room = findRoomWithNickname(data.nickname);
-      room.instance.send(data);
+      sendServerGame(room, data);
       break;
     }
     case 'matchReport': {
@@ -290,7 +298,6 @@ socketFE.on('message', (data) => {
       }
       break;
     }
-
   }
 });
 

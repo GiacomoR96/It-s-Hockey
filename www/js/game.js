@@ -30,7 +30,8 @@ var app = {
         delayFinishGame : 3000,
         finishGame : false,
         continueGame : false,
-        refreshScore : false
+        refreshScore : false,
+        goal: false
     }
 };
 var socket = io.connect('http://localhost:8081');
@@ -46,6 +47,7 @@ var positionBorderX = [18,400,785,400];
 var positionBorderY = [450,10,450,890];
 
 function resetAction() {
+    app.system.goal = false;
     app.system.continueGame = false;
     app.ball.lastMovement = false;
 }
@@ -87,7 +89,7 @@ socket.on('myPosition', (data) => {
 
 socket.on('moveRivalPosition', (data) => {
     app.rival.posX = proportionsX(data[0]);
-    app.rival.posY = proportionsY(data[1]); 
+    app.rival.posY = proportionsY(data[1]);
 });
 
 socket.on('setPositionPuck', (data) => {
@@ -218,6 +220,11 @@ function begin() {
         strikerRival.scaleY = percentY(app.system.fieldY);
         strikerRival.body.setCircle(40);
 
+        var div = document.createElement('div');
+        div.style = `background-color: rgb(253, 175, 31); border-radius: 15px; height: ${proportionsY(30)}px; padding: 0.5% 1%; font: ${proportionsY(app.system.fontPlayer)}px Comic Sans MS; color: white; text-transform: uppercase`;
+        div.innerText = app.rival.nickname;
+        strikerRival.label = this.add.dom(app.rival.posX, Math.floor(app.rival.posY - proportionsY(60)), div);
+
         // Qui inizializziamo Striker2 e lo rendiamo trascinabile
         strikerPlayer = this.physics.add.sprite(app.player.posX, app.player.posY, 'strikerPlayer').setInteractive({ draggable: true});
         strikerPlayer.scaleX = percentX(app.system.fieldX);
@@ -225,11 +232,10 @@ function begin() {
         strikerPlayer.body.setCircle(40);
         strikerPlayer.body.setBounce(1,1);
 
-        var div = document.createElement('div');
+        /* var div = document.createElement('div');
         div.style = `background-color: rgb(253, 175, 31); border-radius: 15px; height: ${proportionsY(30)}px; padding: 0.5% 1%; font: ${proportionsX(app.system.fontPlayer)}px Comic Sans MS; color: white; text-transform: uppercase`;
         div.innerText = app.rival.nickname;
-
-        strikerRival.label = this.add.dom(proportionsX(app.rival.posX), proportionsY(app.rival.posY), div);
+        strikerRival.label = this.add.dom(proportionsX(app.rival.posX), proportionsY(app.rival.posY), div); */
 
         // Tramite questa funzione è possibile trascinare lo striker con il cursore
         strikerPlayer.on('drag', function(pointer, dragX, dragY) {
@@ -261,14 +267,15 @@ function begin() {
         graphics = this.add.graphics(0,0);
     }
 
-    function goal(puck) {
+    function goal() {
         app.ball.lastMovement=false;
-        puck.destroy();
+        app.system.goal = true;
+        puck.setVisible(false);
         app.system.textGol.setVisible(true);
     }
 
     function update() {
-        if(app.ball.lastMovement) {
+        if(app.ball.lastMovement && !app.system.goal) {
             socket.emit('puckPosition', {data: proportionsReverse(puck.x, puck.y)});
             puck.setVelocity((puck.body.velocity.x) * 0.997, (puck.body.velocity.y) * 0.997);   // Decremento velocità di 3 millesimi a ciclo di update
         }
@@ -280,15 +287,14 @@ function begin() {
         strikerRival.x = app.rival.posX;
         strikerRival.y = app.rival.posY;
         strikerRival.label.x = app.rival.posX;
-        strikerRival.label.y = Math.floor(app.rival.posY - 60);
+        strikerRival.label.y = Math.floor(app.rival.posY - proportionsY(60));
 
         if(app.system.refreshScore) {
             app.system.textScore.setVisible(false);
-            app.system.textScore = this.add.text(proportionsX(5), proportionsY(498), (app.player.score+' - '+app.rival.score), { font: '32px Courier', fill: '#000000' });
-            app.system.textScore.scaleX = percentX(app.system.fieldX);
-            app.system.textScore.scaleY = percentY(app.system.fieldY);
+            app.system.textScore = this.add.text(proportionsX(5), proportionsY(498), (app.player.score+' - '+app.rival.score), { font: `${proportionsX(32)}px Courier`, fill: '#000000' });
             app.system.textScore.angle = -90;
             app.system.refreshScore = false;
+            // app.system.textScore.setVisible(true);
         }
 
         this.physics.world.collide(puck, strikerPlayer, (data) => {
@@ -315,21 +321,19 @@ function begin() {
                 puck.setVelocity(-10 * diffX, -10 * diffY);
             }
 
-            // TODO : DA RIVEDERE IL COMPORTAMENTO
             if(app.ball.lastMovement==false) {
                 socket.emit('puckPosition', {data: proportionsReverse(puck.x, puck.y)});
                 app.ball.lastMovement=true;
             }
         });
 
-        // TODO: VALUTARE SE SI PUO' MIGLIORARE
         // Zona porta del rivale
-        if(puck.x > proportionsX(346) && puck.x< proportionsX(455) && puck.y> 0 && puck.y< proportionsY(45)) {
+        if(!app.system.goal && puck.x > proportionsX(346) && puck.x < proportionsX(455) && puck.y > 0 && puck.y < proportionsY(45)) {
             goal(puck);
         }
 
         // Zona porta del player
-        if(puck.x > proportionsX(346) && puck.x< proportionsX(455) && puck.y> proportionsY(855) && puck.y< proportionsY(app.system.defaultHeight)) {
+        if(!app.system.goal && puck.x > proportionsX(346) && puck.x < proportionsX(455) && puck.y > proportionsY(855) && puck.y < proportionsY(app.system.defaultHeight)) {
             goal(puck);
             socket.emit('goalSuffered');
         }
@@ -343,14 +347,9 @@ function begin() {
             resetAction();
             app.system.textGol.setVisible(false);
 
-            puck = this.physics.add.sprite(app.ball.posX,app.ball.posY,'puck');
-            puck.scaleX = percentX(app.system.fieldX);
-            puck.scaleY = percentY(app.system.fieldY);
-            puck.body.setCircle(20);
-            puck.body.setBounce(1,1);
-            puck.body.collideWorldBounds = true;
-            this.physics.add.collider(puck, border);
-            this.physics.add.collider(puck, strikerPlayer);
+            puck.x = app.ball.posX;
+            puck.y = app.ball.posY;
+            puck.setVisible(true);
         }
     }
 }
