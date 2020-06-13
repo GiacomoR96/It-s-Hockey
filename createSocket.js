@@ -48,6 +48,12 @@ socket.on('connection', (client) => {
     });
 
     client.on('loginUser', (data) => {
+        var index = findSocketIndex(data.data.nickname);
+        if((index != null || index != undefined) && usersSocket[index].socket) {
+            usersSocket[index].socket.emit('redirect', {path: '/errorPage.html', message: `Qualcuno ha effettuato l'accesso al tuo account!`});
+            usersSocket.splice(index, 1);
+        }
+
         var socketClient = {
             socket : client,
             nickname: data.data.nickname
@@ -197,7 +203,7 @@ process.on('message', (data) => {
             socketClient.emit(data.event,data.data);
             break;
         }
-        case 'setPositionPuck': {
+        case 'setPuckPosition': {
             socketClient.emit(data.event,data.data);
             break;
         }

@@ -345,7 +345,7 @@ function messageServerGame(room) {
         connectDB(data, updateStatPlayers);
         break;
       }
-      case 'setPositionPuck': {
+      case 'setPuckPosition': {
         socketFE.send(data);
         break;
       }

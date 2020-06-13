@@ -92,7 +92,7 @@ socket.on('moveRivalPosition', (data) => {
     app.rival.posY = proportionsY(data[1]);
 });
 
-socket.on('setPositionPuck', (data) => {
+socket.on('setPuckPosition', (data) => {
     app.ball.posX = proportionsX(data[0]);
     app.ball.posY = proportionsY(data[1]);
 });

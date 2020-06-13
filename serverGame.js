@@ -118,8 +118,8 @@ process.on('message', (data) => {
                 else {
                     positionBallPlayer1 = [400,650];
                     positionBallPlayer2 = [400,250];
-                    process.send({event:'setPositionPuck', nickname: nickname1, data: positionBallPlayer1});
-                    process.send({event:'setPositionPuck', nickname: nickname2, data: positionBallPlayer2});
+                    process.send({event:'setPuckPosition', nickname: nickname1, data: positionBallPlayer1});
+                    process.send({event:'setPuckPosition', nickname: nickname2, data: positionBallPlayer2});
                     delayMessage('continueGame', baseDelay);
                 }
             }
