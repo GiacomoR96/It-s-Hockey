@@ -40,15 +40,17 @@ function cancelGameLoading() {
     socket.emit('cancelGameLoading');
 }
 
-function loginIntoRoom(key) {
-    socket.emit('joinIntoRoom', {data : {id: key}});
-}
-
 function loginIntoRoom(key, password) {
+    if(password) {
+        password = sha1(password);
+    } 
     socket.emit('joinIntoRoom', {data : {id: key, password}});
 }
 
 function createRoom(dataRoom) {
+    if(dataRoom.password) {
+        dataRoom.password = sha1(dataRoom.password);
+    }
     socket.emit('createRoom', {data : dataRoom});
 }
 
@@ -57,10 +59,12 @@ function communicate(data) {
 }
 
 function loginUser(dataUser) {
+    dataUser.password = sha1(dataUser.password);
     socket.emit('loginUser', {data: dataUser});
 }
 
 function registrationUser(dataUser) {
+    dataUser.password = sha1(dataUser.password);
     socket.emit('registrationUser', {data: dataUser});
 }
 

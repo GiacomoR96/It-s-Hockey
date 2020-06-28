@@ -134,10 +134,12 @@ function findFreeRoom() {
 }
 
 function findRivalNickname(room, nickname) {
-  if(room.nickname1 == nickname) {
-    return room.nickname2;
+  if (room) {
+    if(room.nickname1 == nickname) {
+      return room.nickname2;
+    }
+    return room.nickname1;
   }
-  return room.nickname1;
 }
 
 function prepareGame(room, nickname) {
@@ -193,7 +195,7 @@ socketFE.on('message', (data) => {
       break;
     }
     case 'loginUser': {
-      var query = `SELECT COUNT(nickname) FROM giocatore WHERE BINARY nickname='${params.nickname}' AND BINARY password='${params.password}'`
+      var query = `SELECT COUNT(nickname) FROM players WHERE BINARY nickname='${params.nickname}' AND BINARY password='${params.password}'`
 
       connectDB(query, queryDB).then((result) => {
         if (result.error != null || Object.values(result.data[0])[0] === 0) {
@@ -205,7 +207,7 @@ socketFE.on('message', (data) => {
       break;
     }
     case 'dataUser': {
-      var query = `SELECT nickname, level, exp FROM giocatore WHERE BINARY nickname='${data.nickname}'`;
+      var query = `SELECT nickname, level, exp FROM players WHERE BINARY nickname='${data.nickname}'`;
 
       connectDB(query, queryDB).then((result) => {
         if (result.error != null || result.data.length === 0) {
@@ -217,7 +219,7 @@ socketFE.on('message', (data) => {
       break;
     }
     case 'registrationUser': {
-      var query = `INSERT INTO giocatore(Nickname, Password) VALUES ('${params.nickname}', '${params.password}')`;
+      var query = `INSERT INTO players(Nickname, Password) VALUES ('${params.nickname}', '${params.password}')`;
 
       connectDB(query, queryDB).then((result) => {
         if (result.error != null || result.data.length === 0) {
@@ -263,7 +265,7 @@ socketFE.on('message', (data) => {
     }
     case 'matchReport': {
       var room = findRoomWithNickname(data.nickname);
-      var query = `SELECT level, exp FROM giocatore WHERE BINARY nickname='${data.nickname}'`;
+      var query = `SELECT level, exp FROM players WHERE BINARY nickname='${data.nickname}'`;
       if(room) {
         room.countReport += 1;
         var report = {};
@@ -298,8 +300,29 @@ socketFE.on('message', (data) => {
       }
       break;
     }
+    case 'exitPlayer': {
+      var room = endGame(data);
+      socketFE.send({event: 'redirect', nickname: room.nickname1, data: {path: '/finishGame.html'}});
+      socketFE.send({event: 'redirect', nickname: room.nickname2, data: {path: '/finishGame.html'}});
+      break;
+    }
+    case 'quitPlayer': {
+      var room = endGame(data);
+      room.countReport++;
+      socketFE.send({event: 'redirect', nickname: room.winner, data: {path: '/finishGame.html'}});
+      break;
+    }
   }
 });
+
+function endGame(data) {
+  var room = findRoomWithNickname(data.nickname);
+  room.winner = findRivalNickname(room, data.nickname);
+  room.loser = data.nickname;
+  connectDB({winner: room.winner, loser: room.loser}, updateStatPlayers);
+  room.instance.kill('SIGINT');
+  return room;
+}
 
 function updateStatPlayers(con, data) {
   saveDataDB(data.winner, expWinner);
@@ -386,18 +409,27 @@ function queryDB(con, operation) {
   });
 }
 
+function nextLevel(level){
+  return Math.round((4 * (Math.pow(level,3))) / 5)
+}
+
+function calculateLevel(player) {
+  var newLevel = player.level;
+  while (nextLevel(newLevel) < player.exp) {
+    newLevel++;
+  }
+  return newLevel;
+}
+
 function saveDataDB(user, score) {
-  var query = `SELECT nickname, level, exp FROM giocatore WHERE BINARY nickname='${user}'`;
+  var query = `SELECT nickname, level, exp FROM players WHERE BINARY nickname='${user}'`;
 
   connectDB(query, queryDB).then((result) => {
     if (result.error != null || result.data.length === 0) throw err;
     else {
       var newExp = result.data[0].exp + score;
-      var level = result.data[0].level;
-      if (level < livEXP.length && newExp >= livEXP[level]) {
-        level++;
-      }
-      var query2 = `UPDATE giocatore SET level='${level}', exp='${newExp}' WHERE BINARY nickname='${user}'`;
+      var level = calculateLevel(result.data[0]);
+      var query2 = `UPDATE players SET level='${level}', exp='${newExp}' WHERE BINARY nickname='${user}'`;
       connectDB(query2, queryDB);
     }
   });

@@ -111,6 +111,13 @@ socket.on('connection', (client) => {
         process.send({event:'quickGame', nickname: findNickname(client)});
     });
 
+    client.on('exitPlayer', () =>{
+        process.send({event:'exitPlayer', nickname: findNickname(client)});
+    });
+
+    client.on('quitPlayer', () =>{
+        process.send({event:'quitPlayer', nickname: findNickname(client)});
+    });
 });
 
 function getSocket(nickname) {

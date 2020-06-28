@@ -31,7 +31,9 @@ var app = {
         finishGame : false,
         continueGame : false,
         refreshScore : false,
-        goal: false
+        goal: false,
+        exitButton: null,
+        sendMessageQuit: false
     }
 };
 var socket = io.connect('http://localhost:8081');
@@ -45,6 +47,10 @@ var border = [];
 var colorBorder = ['borderLeft','borderTop','borderRight','borderBottom'];
 var positionBorderX = [18,400,785,400];
 var positionBorderY = [450,10,450,890];
+
+function exitPlayer() {
+    socket.emit('exitPlayer');
+}
 
 function resetAction() {
     app.system.goal = false;
@@ -65,6 +71,7 @@ socket.emit('updateSocket', $.cookie('key')).on('updateSocket', function() {
 });
 
 socket.on('redirect', function(destination) {
+    app.system.sendMessageQuit = false;
     var key = Object.keys(destination)[1];
     var value = Object.values(destination);
     if (key == 'key') {
@@ -116,6 +123,13 @@ socket.on('refreshScoreGame', (data) => {
 socket.on('launchGame', () => {    
     console.log('Inizia la partita!');
     begin();
+});
+
+window.addEventListener('beforeunload', function (e) {
+    if(app.system.sendMessageQuit){
+        socket.emit('quitPlayer');
+    }
+    return ''; 
 });
 
 socket.on('finishGame', () => {
@@ -214,6 +228,12 @@ function begin() {
         app.system.textScore = this.add.text(proportionsX(5), proportionsY(498), (app.player.score+' - '+app.rival.score), { font: `${proportionsX(32)}px Courier`, fill: '#000000' });
         app.system.textScore.angle = -90;
 
+        var button = document.createElement('button')
+        button.style = `background-color: white; border-radius: 15px; outline:none; width: ${proportionsX(25)}px; padding: 0.5%; text-align: center; font: ${proportionsY(13)}px Comic Sans MS; color: black; text-transform: uppercase; word-wrap: break-word`;
+        button.innerText = 'ABBANDONA';
+        button.onclick = () => exitPlayer();
+        app.system.exitButton = this.add.dom(proportionsX(782), proportionsY(450), button)
+
         // Inizializzazione Striker1
         strikerRival = this.physics.add.sprite(app.rival.posX, app.rival.posY,'strikerRival');
         strikerRival.scaleX = percentX(app.system.fieldX);
@@ -231,11 +251,6 @@ function begin() {
         strikerPlayer.scaleY = percentY(app.system.fieldY);
         strikerPlayer.body.setCircle(40);
         strikerPlayer.body.setBounce(1,1);
-
-        /* var div = document.createElement('div');
-        div.style = `background-color: rgb(253, 175, 31); border-radius: 15px; height: ${proportionsY(30)}px; padding: 0.5% 1%; font: ${proportionsX(app.system.fontPlayer)}px Comic Sans MS; color: white; text-transform: uppercase`;
-        div.innerText = app.rival.nickname;
-        strikerRival.label = this.add.dom(proportionsX(app.rival.posX), proportionsY(app.rival.posY), div); */
 
         // Tramite questa funzione è possibile trascinare lo striker con il cursore
         strikerPlayer.on('drag', function(pointer, dragX, dragY) {
@@ -265,6 +280,7 @@ function begin() {
         this.physics.add.collider(puck, strikerPlayer);
 
         graphics = this.add.graphics(0,0);
+        app.system.sendMessageQuit = true;
     }
 
     function goal() {
