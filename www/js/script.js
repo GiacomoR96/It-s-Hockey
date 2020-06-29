@@ -1,5 +1,5 @@
 
-var socket = io.connect('http://localhost:8081');
+var socket = io.connect('http://localhost:8080');
 var cookie = document.cookie;
 
 function createButtonRoom(item, index) {

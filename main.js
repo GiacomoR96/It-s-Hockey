@@ -1,12 +1,15 @@
-var http = require('http');
 var fs = require('fs');
 var mysql = require('mysql');
+var express = require('express');
+var app = express();
+var server = require('http').createServer(app);
+var socket = require('socket.io')(server);
+var paths = ['/favicon.ico', '/', '/images/loading.gif', '/startGame.html', '/www/js/game.js', '/www/js/phaser.js', '/www/img/Sfondo_.png', '/www/img/borderLeft.png', '/www/img/borderTop.png', '/www/img/borderRight.png', '/www/img/borderBottom.png', '/www/img/puck.png', '/www/img/striker.png', '/finishGame.html', '/mainGame.html', '/index.html', '/registration.html', '/www/js/script.js', '/contact.html', '/css/animate.css', '/css/icomoon.css', '/css/bootstrap.css', '/css/style.css', '/js/modernizr-2.6.2.min.js', '/js/jquery.min.js', '/js/jquery.easing.1.3.js', '/js/bootstrap.min.js', '/js/jquery.waypoints.min.js', '/js/main.js', '/images/loader.gif', '/images/img_bg_2.jpg', '/images/sfondoWeb2.png', '/fonts/icomoon/icomoon.ttf', '/errorPage.html'];
+var usersSocket = [];
 
 const { fork } = require('child_process');
-var socketFE = fork('createSocket.js');
 
 var roomList = [];
-var livEXP = [10, 25, 45, 75, 115, 165, 230, 310, 405, 530];
 var expWinner = 7;
 var expLoser = 3;
 
@@ -24,6 +27,33 @@ var roomParams = {
   countReport: 0,
   finish: false
 };
+
+function findNickname(socket) {
+  for(var i=0; i<usersSocket.length; i++) {
+      if(usersSocket[i].socket == socket) {
+          return usersSocket[i].nickname;
+      }
+  }
+  return null;
+}
+
+function getSocket(nickname) {
+  for(var i=0; i<usersSocket.length; i++) {
+      if(usersSocket[i].nickname == nickname) {
+          return usersSocket[i].socket;
+      }
+  }
+  return null;
+}
+
+function findSocketIndex(nickname) {
+  for(var i=0; i<usersSocket.length; i++) {
+      if(usersSocket[i].nickname == nickname) {
+          return i;
+      }
+  }
+  return null;
+}
 
 function refreshRoomsList() {
   var response = [];
@@ -75,7 +105,7 @@ async function connectDB(data, func) {
 
 function createInstanceGame(room, nickname) {
   updateRoom(room, nickname);
-  socketFE.send({event: 'updateRooms', nickname: nickname, data: refreshRoomsList()});
+  sendMessage({event: 'updateRooms', nickname: nickname, data: refreshRoomsList()});
   room.instance = fork('serverGame.js');
   messageServerGame(room);
   room.instance.send({
@@ -103,7 +133,7 @@ function deleteRoom(room) {
     }
   }
   roomList.splice(indexRoom, 1);
-  socketFE.send({event: 'updateRooms', nickname: room.nickname1, data: refreshRoomsList()});
+  sendMessage({event: 'updateRooms', nickname: room.nickname1, data: refreshRoomsList()});
 }
 
 function findRoom(id) {
@@ -144,35 +174,34 @@ function findRivalNickname(room, nickname) {
 
 function prepareGame(room, nickname) {
   createInstanceGame(room, nickname);
-  socketFE.send({event: 'waitingGame', nickname: room.nickname1});
-  socketFE.send({event: 'waitingGame', nickname: room.nickname2});
+  sendMessage({event: 'waitingGame', nickname: room.nickname1});
+  sendMessage({event: 'waitingGame', nickname: room.nickname2});
 }
 
 function sendServerGame(room, data) {
-  if(room && !room.finish) {
+  if(room && room.instance && !room.finish) {
     room.instance.send(data);
   }
 }
 
-/* COMUNICAZIONE DA SOCKET_FE e PADRE */
-socketFE.on('message', (data) => {
+function eventMessage(data) {
   var params = data.data;
   switch (data.event) {
     case 'getRooms': {
-      socketFE.send({event: 'getRooms', nickname: data.nickname, data: refreshRoomsList()});
+      sendMessage({event: 'getRooms', nickname: data.nickname, data: refreshRoomsList()});
       break;
     }
     case 'joinIntoRoom': {
       var room = findRoom(params.id);
 
       if (room.state == 'busy') {
-        socketFE.send({event: 'busyRoom', nickname: data.nickname});
+        sendMessage({event: 'busyRoom', nickname: data.nickname});
       } 
       else if (room.type == 'private') {
         if(room.password == params.password ) {
           prepareGame(room, data.nickname);
         } else {
-          socketFE.send({event: 'passwordError', nickname: data.nickname});
+          sendMessage({event: 'passwordError', nickname: data.nickname});
         }
       }
       else {
@@ -190,8 +219,8 @@ socketFE.on('message', (data) => {
       }
       newRoom.name = params.name;
       roomList.push(newRoom);
-      socketFE.send({event: 'updateRooms', nickname: data.nickname, data: refreshRoomsList()});
-      socketFE.send({event: 'waitingPlayer', nickname: data.nickname});
+      sendMessage({event: 'updateRooms', nickname: data.nickname, data: refreshRoomsList()});
+      sendMessage({event: 'waitingPlayer', nickname: data.nickname});
       break;
     }
     case 'loginUser': {
@@ -199,9 +228,9 @@ socketFE.on('message', (data) => {
 
       connectDB(query, queryDB).then((result) => {
         if (result.error != null || Object.values(result.data[0])[0] === 0) {
-          socketFE.send({event: 'endSocket', nickname: params.nickname, data: {path: '/errorPage.html', message: `Errore nell'inserimento dei dati!`}});
+          sendMessage({event: 'endSocket', nickname: params.nickname, data: {path: '/errorPage.html', message: `Errore nell'inserimento dei dati!`}});
         } else {
-          socketFE.send({event: 'redirect', nickname: params.nickname, data: {path: '/mainGame.html', key: params.nickname}});
+          sendMessage({event: 'redirect', nickname: params.nickname, data: {path: '/mainGame.html', key: params.nickname}});
         }
       });
       break;
@@ -211,9 +240,9 @@ socketFE.on('message', (data) => {
 
       connectDB(query, queryDB).then((result) => {
         if (result.error != null || result.data.length === 0) {
-          socketFE.send({event: 'redirect', nickname: params.nickname,  data: {path: '/errorPage.html', message: `PAGINA NON TROVATA!`}});
+          sendMessage({event: 'redirect', nickname: params.nickname,  data: {path: '/errorPage.html', message: `PAGINA NON TROVATA!`}});
         } else {
-          socketFE.send({event: 'dataUser', nickname: data.nickname, data: result.data[0]});
+          sendMessage({event: 'dataUser', nickname: data.nickname, data: result.data[0]});
         }
       });
       break;
@@ -223,23 +252,23 @@ socketFE.on('message', (data) => {
 
       connectDB(query, queryDB).then((result) => {
         if (result.error != null || result.data.length === 0) {
-          socketFE.send({event: 'endSocket', nickname: params.nickname, data: {path: '/errorPage.html', message: `Account gia' esistente!`}});
+          sendMessage({event: 'endSocket', nickname: params.nickname, data: {path: '/errorPage.html', message: `Account gia' esistente!`}});
         } else {
-          socketFE.send({event: 'endSocket', nickname: params.nickname, data: {path: '/errorPage.html', message: `Registrazione effettuata!`}});
+          sendMessage({event: 'endSocket', nickname: params.nickname, data: {path: '/errorPage.html', message: `Registrazione effettuata!`}});
         }
       });
       break;
     }
     case 'cancelGameWaiting': {
       var room = findRoomWithNickname(data.nickname);
-      socketFE.send({event: 'eraseRoom', nickname: data.nickname});
+      sendMessage({event: 'eraseRoom', nickname: data.nickname});
       deleteRoom(room);
       break;
     }
     case 'cancelGameLoading': {
       var room = findRoomWithNickname(data.nickname);
       var rival = findRivalNickname(room, data.nickname);
-      socketFE.send({event: 'eraseRoom', nickname: rival});
+      sendMessage({event: 'eraseRoom', nickname: rival});
       deleteRoom(room);
       break;
     }
@@ -279,9 +308,9 @@ socketFE.on('message', (data) => {
 
         connectDB(query, queryDB).then((result) => {
           if (result.error != null || result.data.length === 0) {
-            socketFE.send({event: 'redirect', nickname: data.nickname,  data: {path: '/errorPage.html', message: `PAGINA NON TROVATA!`}});
+            sendMessage({event: 'redirect', nickname: data.nickname,  data: {path: '/errorPage.html', message: `PAGINA NON TROVATA!`}});
           } else {
-            socketFE.send({event: 'matchReport', nickname: data.nickname, data: { dataUser: result.data[0], report}});
+            sendMessage({event: 'matchReport', nickname: data.nickname, data: { dataUser: result.data[0], report}});
           }
         });
 
@@ -296,24 +325,24 @@ socketFE.on('message', (data) => {
       if(room) {
         prepareGame(room, data.nickname);
       } else {
-        socketFE.send({event: 'notFoundRoom', nickname: data.nickname});
+        sendMessage({event: 'notFoundRoom', nickname: data.nickname});
       }
       break;
     }
     case 'exitPlayer': {
       var room = endGame(data);
-      socketFE.send({event: 'redirect', nickname: room.nickname1, data: {path: '/finishGame.html'}});
-      socketFE.send({event: 'redirect', nickname: room.nickname2, data: {path: '/finishGame.html'}});
+      sendMessage({event: 'redirect', nickname: room.nickname1, data: {path: '/finishGame.html'}});
+      sendMessage({event: 'redirect', nickname: room.nickname2, data: {path: '/finishGame.html'}});
       break;
     }
     case 'quitPlayer': {
       var room = endGame(data);
       room.countReport++;
-      socketFE.send({event: 'redirect', nickname: room.winner, data: {path: '/finishGame.html'}});
+      sendMessage({event: 'redirect', nickname: room.winner, data: {path: '/finishGame.html'}});
       break;
     }
   }
-});
+}
 
 function endGame(data) {
   var room = findRoomWithNickname(data.nickname);
@@ -333,35 +362,35 @@ function messageServerGame(room) {
   room.instance.on('message', (data) => {
     switch (data.event) {
       case 'startGame' : {
-        socketFE.send({event: 'redirect', nickname: data.nickname, data: {path: '/startGame.html', key: data.nickname}});
+        sendMessage({event: 'redirect', nickname: data.nickname, data: {path: '/startGame.html', key: data.nickname}});
         break;
       }
       case 'puckPosition': {
-        socketFE.send(data);
+        sendMessage(data);
         break;
       }
       case 'rivalData': {
-        socketFE.send(data);
+        sendMessage(data);
         break;
       }
       case 'myPosition': {
-        socketFE.send(data);
+        sendMessage(data);
         break;
       }
       case 'launchGame': {
-        socketFE.send(data);
+        sendMessage(data);
         break;
       }
       case 'moveRivalPosition': {
-        socketFE.send(data);
+        sendMessage(data);
         break;
       }
       case 'refreshScoreGame': {
-        socketFE.send(data);
+        sendMessage(data);
         break;
       }
       case 'finishGame': {
-        socketFE.send(data);
+        sendMessage(data);
         break;
       }
       case 'updateDataDB': {
@@ -369,11 +398,11 @@ function messageServerGame(room) {
         break;
       }
       case 'setPuckPosition': {
-        socketFE.send(data);
+        sendMessage(data);
         break;
       }
       case 'continueGame': {
-        socketFE.send(data);
+        sendMessage(data);
         break;
       }
       case 'stopServerGame': {
@@ -382,12 +411,207 @@ function messageServerGame(room) {
         room.loser = data.result.loser;
         room.instance.kill('SIGINT');
 
-        socketFE.send({event: 'redirect', nickname: room.nickname1, data: {path: '/finishGame.html'}});
-        socketFE.send({event: 'redirect', nickname: room.nickname2, data: {path: '/finishGame.html'}});
+        sendMessage({event: 'redirect', nickname: room.nickname1, data: {path: '/finishGame.html'}});
+        sendMessage({event: 'redirect', nickname: room.nickname2, data: {path: '/finishGame.html'}});
         break;
       }
     }
   });
+}
+
+socket.on('connection', (client) => {
+  console.log('socketServer: Qualcuno ha mandato un messaggio sulla socket.');
+
+  client.on('updateSocket', (nickname) => {
+      var index = findSocketIndex(nickname);
+      if (index == null || index == undefined) {
+          client.emit('redirect', {path: '/errorPage.html', message: `PAGINA NON TROVATA!`});
+      } else {
+          usersSocket[index].socket = client;
+          client.emit('updateSocket');
+      }
+  });
+
+  client.on('dataUser', () => {
+      eventMessage({event:'dataUser', nickname: findNickname(client)});
+  });
+
+  client.on('getRooms', () => {
+      eventMessage({event:'getRooms', nickname: findNickname(client)});
+  });
+
+  client.on('joinIntoRoom', (data) => {
+      eventMessage({event:'joinIntoRoom', nickname: findNickname(client), data: data.data});
+  });
+
+  client.on('createRoom', (data) => {
+      eventMessage({event:'createRoom', nickname: findNickname(client), data: data.data});
+  });
+
+  client.on('loginUser', (data) => {
+      var index = findSocketIndex(data.data.nickname);
+      if((index != null || index != undefined) && usersSocket[index].socket) {
+          usersSocket[index].socket.emit('redirect', {path: '/errorPage.html', message: `Qualcuno ha effettuato l'accesso al tuo account!`});
+          usersSocket.splice(index, 1);
+      }
+
+      var socketClient = {
+          socket : client,
+          nickname: data.data.nickname
+      }
+      usersSocket.push(socketClient);
+      eventMessage({event:'loginUser', data: data.data});
+  });
+  
+  client.on('registrationUser', (data) => {
+      var socketClient = {
+          socket : client,
+          nickname: data.data.nickname
+      }
+      usersSocket.push(socketClient);
+      eventMessage({event:'registrationUser', data: data.data});
+  });
+
+  client.on('logout', () => {
+      usersSocket.splice(findSocketIndex(findNickname(client)), 1);
+  });
+
+  client.on('cancelGameWaiting', () => {
+      eventMessage({event:'cancelGameWaiting', nickname: findNickname(client)});
+  });
+
+  client.on('cancelGameLoading', () => {
+      eventMessage({event:'cancelGameLoading', nickname: findNickname(client)});
+  });
+
+  client.on('requestStartGame', (data) =>{
+      eventMessage({event:'requestStartGame', nickname: findNickname(client)});
+  });
+
+  client.on('puckPosition', (data) => {
+      eventMessage({event:'puckPosition', nickname: findNickname(client), data: data.data});
+  });
+
+  client.on('moveMyPosition', (data) => {
+      eventMessage({event:'moveMyPosition', nickname: findNickname(client), data: data.data});
+  });
+
+  client.on('goalSuffered', () => {
+      eventMessage({event:'goalSuffered', nickname: findNickname(client)});
+  });
+
+  client.on('matchReport', () => {
+      eventMessage({event:'matchReport', nickname: findNickname(client)});
+  });
+
+  client.on('backToMain', () => {
+      client.emit('redirect', {path: '/mainGame.html'});
+  });
+
+  client.on('quickGame', () =>{
+      eventMessage({event:'quickGame', nickname: findNickname(client)});
+  });
+
+  client.on('exitPlayer', () =>{
+      eventMessage({event:'exitPlayer', nickname: findNickname(client)});
+  });
+
+  client.on('quitPlayer', () =>{
+      eventMessage({event:'quitPlayer', nickname: findNickname(client)});
+  });
+});
+
+function sendMessage(data) {
+  console.log('Messaggio mandato: \t',data);
+    var socketClient = getSocket(data.nickname);
+    if (socketClient) {
+      switch (data.event) {
+        case 'getRooms': {
+            socketClient.emit(data.event, data.data);
+            break;
+        }
+        case 'busyRoom': {
+            socketClient.emit(data.event);
+            break;
+        }
+        case 'passwordError': {
+            socketClient.emit(data.event);
+            break;
+        }
+        case 'updateRooms': {
+            socket.sockets.emit('getRooms', data.data);
+        }
+        case 'redirect': {
+            socketClient.emit(data.event, data.data);
+            break;
+        }
+        case 'endSocket': {
+            socketClient.emit('redirect', data.data);
+            usersSocket.splice(findSocketIndex(data.nickname), 1);
+            break;
+        }
+        case 'dataUser': {
+            socketClient.emit(data.event, data.data);
+            break;
+        }
+        case 'waitingPlayer': {
+            socketClient.emit(data.event);
+            break;
+        }
+        case 'waitingGame': {
+            socketClient.emit(data.event);
+            break;
+        }
+        case 'eraseRoom': {
+            socketClient.emit(data.event);
+            break;
+        }
+        case 'puckPosition': {
+            socketClient.emit(data.event,data.data);
+            break;
+        }
+        case 'rivalData': {
+            socketClient.emit(data.event,data.data);
+            break;
+        }
+        case 'myPosition': {
+            socketClient.emit(data.event,data.data);
+            break;
+        }
+        case 'launchGame': {
+            socketClient.emit(data.event);
+            break;
+        }
+        case 'moveRivalPosition': {
+            socketClient.emit(data.event,data.data);
+            break;
+        }
+        case 'refreshScoreGame': {
+            socketClient.emit(data.event,data.data);
+            break;
+        }
+        case 'finishGame': {
+            socketClient.emit(data.event,data.data);
+            break;
+        }
+        case 'setPuckPosition': {
+            socketClient.emit(data.event,data.data);
+            break;
+        }
+        case 'continueGame': {
+            socketClient.emit(data.event,data.data);
+            break;
+        }
+        case 'matchReport': {
+            socketClient.emit(data.event,data.data);
+            break;
+        }
+        case 'notFoundRoom': {
+            socketClient.emit(data.event);
+            break;
+        }
+      }
+    }
 }
 
 function queryDB(con, operation) {
@@ -467,10 +691,8 @@ function routePage(url, res) {
   });
 }
 
-http.createServer((req, res) => {
-  if (req.method == 'GET') {
-    routePage(req.url, res);
-  }
-}).listen(8080, () => {
-    console.log('Server avviato sulla porta: ', 8080);
+app.get(paths, function (req, res) {
+  routePage(req.url, res);
 });
+
+server.listen(8080, () => console.log("In ascolto sulla porta 8080..."));

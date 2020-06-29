@@ -36,7 +36,7 @@ var app = {
         sendMessageQuit: false
     }
 };
-var socket = io.connect('http://localhost:8081');
+var socket = io.connect('http://localhost:8080');
 
 // Oggetti grafici Phaser
 var puck;
@@ -261,8 +261,6 @@ function begin() {
                 app.player.posX = dragX;
                 app.player.posY = dragY;
 
-                // TODO: CAPIRE SE SI POSSONO MANDARE MENO MESSAGGI IN BASE AL VALORE RICAVATO DALLA PROPORZIONE, SE
-                // LO SPOSTAMENTO E' DI POCHI PIXEL ALLORA L'EVENTO NON DEVE ESSERE MANDATO
                 if(!app.system.finishGame) {
                     socket.emit('moveMyPosition', {data: proportionsReverse(app.player.posX, app.player.posY)});
                 }
@@ -310,7 +308,6 @@ function begin() {
             app.system.textScore = this.add.text(proportionsX(5), proportionsY(498), (app.player.score+' - '+app.rival.score), { font: `${proportionsX(32)}px Courier`, fill: '#000000' });
             app.system.textScore.angle = -90;
             app.system.refreshScore = false;
-            // app.system.textScore.setVisible(true);
         }
 
         this.physics.world.collide(puck, strikerPlayer, (data) => {
