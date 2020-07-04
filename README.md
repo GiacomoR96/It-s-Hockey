@@ -54,6 +54,7 @@ It's Hockey is a cross-platform web app based on the Air Hockey game.
 - HTML
 - CSS
 - Javascript
+- SQL
 - JQuery
 - Phaser
 - Express
