@@ -16,11 +16,23 @@ var posBaseY = 450;
 var baseDelay = 4000;
 var startDelay = 10000;
 
+function sendMessages(event) {
+    if(event == 'continueGame') continueGame = true;
+    process.send({event:event, nickname: nickname1});
+    process.send({event:event, nickname: nickname2});
+}
+
 function delayMessage(event, delay) {
     setTimeout(function myTime() {
-        if(event == 'continueGame') continueGame = true;
-        process.send({event:event, nickname: nickname1});
-        process.send({event:event, nickname: nickname2});
+        sendMessages(event);
+    }, delay);
+}
+
+function delayGoal(event, delay) {
+    setTimeout(function myTime() {
+        sendMessages(event);
+        process.send({event:'setPuckPosition', nickname: nickname1, data: positionBallPlayer1});
+        process.send({event:'setPuckPosition', nickname: nickname2, data: positionBallPlayer2});
     }, delay);
 }
 
@@ -93,8 +105,12 @@ process.on('message', (data) => {
                 continueGame = false;
                 if(nickname1 == data.nickname) {
                     scorePlayer2 += 1;
+                    positionBallPlayer1 = [400,650];
+                    positionBallPlayer2 = [400,250]
                 } else {
                     scorePlayer1 += 1;
+                    positionBallPlayer1 = [400,250];
+                    positionBallPlayer2 = [400,650];
                 }
                 // Giocatore che ha subito il gol (VANTAGGIO DI POSIZIONE)
                 process.send({event:'refreshScoreGame', nickname: nickname1, data: {scorePlayer: scorePlayer1, scoreRival: scorePlayer2}});
@@ -116,11 +132,7 @@ process.on('message', (data) => {
                     resetServer({winner, loser});
                 }
                 else {
-                    positionBallPlayer1 = [400,650];
-                    positionBallPlayer2 = [400,250];
-                    process.send({event:'setPuckPosition', nickname: nickname1, data: positionBallPlayer1});
-                    process.send({event:'setPuckPosition', nickname: nickname2, data: positionBallPlayer2});
-                    delayMessage('continueGame', baseDelay);
+                    delayGoal('continueGame', baseDelay);
                 }
             }
             break;

@@ -222,7 +222,7 @@ function begin() {
 
         app.system.textGol = this.add.text(proportionsX(290), proportionsY(410), 'Goal!', { font: `${proportionsX(75)}px Courier`, fill: '#000000' });
         app.system.textGol.setVisible(false);
-        app.system.textEndGame = this.add.text(proportionsX(135), proportionsY(410), 'Finish game!', { font: `${proportionsX(75)}px Courier`, fill: '#000000' });
+        app.system.textEndGame = this.add.text(proportionsX(135), proportionsY(410), 'Fine partita!', { font: `${proportionsX(75)}px Courier`, fill: '#000000' });
         app.system.textEndGame.setVisible(false);
 
         app.system.textScore = this.add.text(proportionsX(5), proportionsY(498), (app.player.score+' - '+app.rival.score), { font: `${proportionsX(32)}px Courier`, fill: '#000000' });
