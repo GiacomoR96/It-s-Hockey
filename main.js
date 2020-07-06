@@ -330,18 +330,36 @@ function eventMessage(data) {
       break;
     }
     case 'exitPlayer': {
-      var room = endGame(data);
-      sendMessage({event: 'redirect', nickname: room.nickname1, data: {path: '/finishGame.html'}});
-      sendMessage({event: 'redirect', nickname: room.nickname2, data: {path: '/finishGame.html'}});
+      var room = findRoomWithNickname(data.nickname);
+      sendMessage({event: 'stopGame', nickname: room.nickname1});
+      sendMessage({event: 'stopGame', nickname: room.nickname2});
+      delayEndGame(exitPlayer, data);
       break;
     }
     case 'quitPlayer': {
-      var room = endGame(data);
-      room.countReport++;
-      sendMessage({event: 'redirect', nickname: room.winner, data: {path: '/finishGame.html'}});
+      var room = findRoomWithNickname(data.nickname);
+      sendMessage({event: 'stopGame', nickname: room.nickname1});
+      sendMessage({event: 'stopGame', nickname: room.nickname2});
+      delayEndGame(quitPlayer, data)
       break;
     }
   }
+}
+
+function delayEndGame(func, data) {
+  setTimeout(() => { func(data); }, 2000);
+}
+
+function exitPlayer(data) {
+  var room = endGame(data);
+  sendMessage({event: 'redirect', nickname: room.nickname1, data: {path: '/finishGame.html'}});
+  sendMessage({event: 'redirect', nickname: room.nickname2, data: {path: '/finishGame.html'}});
+}
+
+function quitPlayer(data) {
+  var room = endGame(data);
+  room.countReport++;
+  sendMessage({event: 'redirect', nickname: room.winner, data: {path: '/finishGame.html'}});
 }
 
 function endGame(data) {
@@ -609,6 +627,10 @@ function sendMessage(data) {
         case 'notFoundRoom': {
             socketClient.emit(data.event);
             break;
+        }
+        case 'stopGame': {
+          socketClient.emit(data.event);
+          break;
         }
       }
     }

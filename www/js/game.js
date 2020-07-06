@@ -36,7 +36,7 @@ var app = {
         sendMessageQuit: false
     }
 };
-var socket = io.connect('http://localhost:8080');
+var socket = io.connect('http://151.52.157.139:8080');
 
 // Oggetti grafici Phaser
 var puck;
@@ -118,6 +118,10 @@ socket.on('refreshScoreGame', (data) => {
     app.player.score = data.scorePlayer;
     app.rival.score = data.scoreRival;
     app.system.refreshScore = true;
+});
+
+socket.on('stopGame', () => {    
+    app.system.finishGame = true;
 });
 
 socket.on('launchGame', () => {    
@@ -236,8 +240,6 @@ function begin() {
 
         // Inizializzazione Striker1
         strikerRival = this.physics.add.sprite(app.rival.posX, app.rival.posY,'strikerRival');
-        strikerRival.scaleX = percentX(app.system.fieldX);
-        strikerRival.scaleY = percentY(app.system.fieldY);
         strikerRival.body.setCircle(40);
 
         var div = document.createElement('div');
@@ -247,8 +249,6 @@ function begin() {
 
         // Qui inizializziamo Striker2 e lo rendiamo trascinabile
         strikerPlayer = this.physics.add.sprite(app.player.posX, app.player.posY, 'strikerPlayer').setInteractive({ draggable: true});
-        strikerPlayer.scaleX = percentX(app.system.fieldX);
-        strikerPlayer.scaleY = percentY(app.system.fieldY);
         strikerPlayer.body.setCircle(40);
         strikerPlayer.body.setBounce(1,1);
 
@@ -269,8 +269,6 @@ function begin() {
         strikerPlayer.setImmovable();
 
         puck = this.physics.add.sprite(app.ball.posX,app.ball.posY, 'puck');
-        puck.scaleX = percentX(app.system.fieldX);
-        puck.scaleY = percentY(app.system.fieldY);
         puck.body.setCircle(20);
         puck.body.setBounce(1,1);
         puck.body.collideWorldBounds = true;
@@ -289,7 +287,7 @@ function begin() {
     }
 
     function update() {
-        if(app.ball.lastMovement && !app.system.goal) {
+        if(app.ball.lastMovement && !app.system.goal && !app.system.finishGame) {
             socket.emit('puckPosition', {data: proportionsReverse(puck.x, puck.y)});
             puck.setVelocity((puck.body.velocity.x) * 0.997, (puck.body.velocity.y) * 0.997);   // Decremento velocità di 3 millesimi a ciclo di update
         }
@@ -334,7 +332,7 @@ function begin() {
                 puck.setVelocity(-10 * diffX, -10 * diffY);
             }
 
-            if(app.ball.lastMovement==false) {
+            if(app.ball.lastMovement==false && !app.system.finishGame) {
                 socket.emit('puckPosition', {data: proportionsReverse(puck.x, puck.y)});
                 app.ball.lastMovement=true;
             }
@@ -346,7 +344,8 @@ function begin() {
         }
 
         // Zona porta del player
-        if(!app.system.goal && puck.x > proportionsX(346) && puck.x < proportionsX(455) && puck.y > proportionsY(855) && puck.y < proportionsY(app.system.defaultHeight)) {
+        if(!app.system.goal && puck.x > proportionsX(346) && puck.x < proportionsX(455) && puck.y > proportionsY(855) && puck.y < proportionsY(app.system.defaultHeight)
+            && !app.system.finishGame) {
             goal(puck);
             socket.emit('goalSuffered');
         }
