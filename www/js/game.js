@@ -36,7 +36,7 @@ var app = {
         sendMessageQuit: false
     }
 };
-var socket = io.connect('http://151.52.157.139:8080');
+var socket = io.connect('http://localhost:8080');
 
 // Oggetti grafici Phaser
 var puck;
