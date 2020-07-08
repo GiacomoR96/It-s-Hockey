@@ -49,6 +49,8 @@ It's Hockey is a cross-platform web app based on the Air Hockey game.
   $ node main
    * Running on http://localhost:8080
   ```
+- #### NOTE :
+	If you want to run the project with public IP, replace localhost:8080 with YOUR_PUBLIC_IP:8080 within the game.js and script.js files
 
 ### Technologies used:
 - HTML
